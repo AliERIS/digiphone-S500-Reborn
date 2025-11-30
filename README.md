@@ -10,7 +10,7 @@
 * PCB photo:  
 * Flashing instructions: flash tool ile dz09.cfgyi seçin embitz ile derlenmiş dz09_boot.bin ile dz.bin'i otomatik görecek sonra download moda basıp telefonu kapalı olarak usb ile bağlayın. (YEDEK ALMANIZ GEREKİYOR YOKSA ORİJİNAL YAZILIMA HİÇBİR ZAMAN DÖNEMEZSİNİZ)
 
-#Ne çalışıyor 
+# Ne çalışıyor 
 - Ekran
 # Ne çalışmıyor
 - Geri Kalan Her Şey
