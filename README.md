@@ -1,11 +1,16 @@
-## Chinese smartwatch DZ09. Custom project.
+## Digiphone S500 için custom rom denemesi.
 
-* Platform:   MT6261
+* Platform:   MT6261DA
 * RAM:        4MiB
-* ROM:        8MiB (GD25LQ64)
-* PCB:        K91-V1.1
-* Original firmware:   GPLUS61A_11C_NX9_PCB01_gprs_MT6261_S00.NX9_V2_1_YJLNS1_64_T1_L3_C4_G4_B_20151212
+* ROM:        4MiB (W25Q32JV)
+* PCB:        F6115-MB-V1.0
+* Original firmware:   YRCT61D_11C_PCB01_GPRS_MT6261_S00.S500_F6115_V01_AB_20240617
 * IDE:        Embitz v1.11
 * Compliler:  gcc arm-none-eabi 5.4.1 (As part of IDE)
-* PCB photo:  PCB_back.jpg, PCB_label.jpg
-* Flashing instructions:      howto.pdf
+* PCB photo:  
+* Flashing instructions: flash tool ile dz09.cfgyi seçin embitz ile derlenmiş dz09_boot.bin ile dz.bin'i otomatik görecek sonra download moda basıp telefonu kapalı olarak usb ile bağlayın. (YEDEK ALMANIZ GEREKİYOR YOKSA ORİJİNAL YAZILIMA HİÇBİR ZAMAN DÖNEMEZSİNİZ)
+
+# Ne çalışıyor 
+- Ekran
+# Ne çalışmıyor
+- Geri Kalan Her Şey
