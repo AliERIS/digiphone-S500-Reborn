@@ -240,6 +240,10 @@
 		<Unit filename="Source\Lib\MT6261\Drivers\afe.h">
 			<Option target="SYSTEM" />
 		</Unit>
+		<Unit filename="Source\Lib\MT6261\Drivers\afe_old.c">
+			<Option compilerVar="CC" />
+			<Option target="SYSTEM" />
+		</Unit>
 		<Unit filename="Source\Lib\MT6261\Drivers\auxadc.c">
 			<Option compilerVar="CC" />
 			<Option target="SYSTEM" />
@@ -266,6 +270,17 @@
 			<Option target="SYSTEM" />
 		</Unit>
 		<Unit filename="Source\Lib\MT6261\Drivers\gpt.h">
+			<Option target="SYSTEM" />
+		</Unit>
+		<Unit filename="Source\Lib\MT6261\Drivers\keypad.c">
+			<Option compilerVar="CC" />
+			<Option target="SYSTEM" />
+		</Unit>
+		<Unit filename="Source\Lib\MT6261\Drivers\keypad.h">
+			<Option target="SYSTEM" />
+		</Unit>
+		<Unit filename="Source\Lib\MT6261\Drivers\kp.c">
+			<Option compilerVar="CC" />
 			<Option target="SYSTEM" />
 		</Unit>
 		<Unit filename="Source\Lib\MT6261\Drivers\kp.h">

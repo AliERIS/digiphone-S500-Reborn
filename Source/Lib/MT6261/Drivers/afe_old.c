@@ -3,6 +3,8 @@
 #include "systemconfig.h"
 #include "afe.h"
 
+static void AFE_Chip_Init(void);
+
 static void AFE_SwitchHSon(void)
 {
     uint16_t restore;
@@ -50,7 +52,7 @@ void _AFE_DCLK_CtrlSeq(boolean turnon, boolean audio)
         ABBA_AUDIODL_CON0 |= (RG_AUDDACRPWRUP | RG_AUDDACLPWRUP);
         ABBA_AUDIODL_CON15  = 0x11A1;
         ABBA_AUDIODL_CON14 |= 0x0001;
-        MD2GSYS_CG_CLR2     = PDN_CON2_AAFE; //equal PDN_CON2_VAFE
+        MD2GSYS_CG_CLR2     = PDN_AAFE; //equal PDN_VAFE
 
         if(audio)
         {
@@ -98,7 +100,7 @@ void _AFE_DCLK_CtrlSeq(boolean turnon, boolean audio)
             AFE_VMCU_CON0  &= (~0x0001);
         }
         AFE_MCU_CON1 &= (~0x000F);
-        MD2GSYS_CG_SET2     = PDN_CON2_VAFE;   //equal PDN_CON2_AAFE
+        MD2GSYS_CG_SET2     = PDN_VAFE;   //equal PDN_AAFE
         ABBA_AUDIODL_CON14 &= (~0x0001);
         ABBA_AUDIODL_CON15  = 0x1021;
         ABBA_AUDIODL_CON9  &= (~0x0001);
@@ -204,7 +206,7 @@ void DC_Calibration(void)
     ABBA_AUDIODL_CON13 = (ABBA_AUDIODL_CON13 & ~0x7C00) | 0x2000 | (3 << 1) | (3 << 6);  // Default 0dB => [14:10] = 01000b
 //#if defined(__CLASSK_CP_SUPPORT__)
 
-    DBG_DumpMem32((uint32_t *)PMU_base, 0x1000);
+    DBG_DumpMem32((uint32_t *)PMU_BASE, 0x1000);
 
     //change to bypass mode
     while(1) //polling power good state
@@ -216,7 +218,7 @@ void DC_Calibration(void)
     VSBST_CON0 |= QI_VSBST_EN;
     USC_Pause_us(1000); //delay 1ms
 
-    DBG_DumpMem32((uint32_t *)PMU_base, 0x1000);
+    DBG_DumpMem32((uint32_t *)PMU_BASE, 0x1000);
 
     while(1)
     {
@@ -247,7 +249,7 @@ void DC_Calibration(void)
 
 void Init_sound(void)
 {
-    MD2GSYS_CG_CLR2 = PDN_CON2_AAFE;
+    MD2GSYS_CG_CLR2 = PDN_AAFE;
 
     AFE_Chip_Init();
     DC_Calibration();
@@ -260,7 +262,7 @@ void Init_sound(void)
 //    SPK_CON0 = SPK_GAIN(3) | RG_SPK_EN;
 }
 
-void AFE_Chip_Init(void)
+static void AFE_Chip_Init(void)
 {
     //Digital part Initialization
     AFE_AMCU_CON1   = 0x0E00;

@@ -25,12 +25,12 @@
 #define WDTINTERVAL         2                                                                       // seconds
 
 // Debug USART interface
-#define DBG_USARTn          USART_MODULE1
+#define DBG_USARTn          USART_MODULE3
 #define DBG_BAUDRATE        460800//115200
-#define DBG_RXPIN           GPIO10
-#define DBG_RXPIN_MODE      GPIO10_MODE_U1RXD
-#define DBG_TXPIN           GPIO11
-#define DBG_TXPIN_MODE      GPIO11_MODE_U1TXD
+#define DBG_RXPIN           GPIO0
+#define DBG_RXPIN_MODE      GPIO00_MODE_U3RXD
+#define DBG_TXPIN           GPIO1
+#define DBG_TXPIN_MODE      GPIO01_MODE_U3TXD
 
 #if defined(TARGET_SYSTEM)
 

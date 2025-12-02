@@ -540,6 +540,7 @@ typedef enum tag_VMC
 #define RG_THERMAL_DIS              (1 << 2)
 #define THR_HWPDN_EN                (1 << 3)
 #define RG_USBDL_EN                 (1 << 4)
+#define RG_PWRKEY_RSTB_SEL          (1 << 6)
 #define QI_PMU_THR_STATUS           (1 << 8)
 #define PMU_THR_PWROFF              (1 << 11)
 #define QI_USBDL_MODE               (1 << 12)
@@ -547,20 +548,11 @@ typedef enum tag_VMC
 #define QI_PWRKEY_VCORE             (1 << 14)
 #define QI_PWRKEY_DEB               (1 << 15)
 
-#define STRUP_CON1                  (*(volatile uint16_t *)(PMU_BASE + 0x0A84))
-#define RG_VREF_BG(v)               (((v) & 0x07) << 0)
-#define RG_PMU_PGDET_DIS            (1 << 3)
-#define RG_STRUP_TEST               (1 << 4)
-#define RG_RST_DRVSEL               (1 << 5)
-#define RG_PMU_LEV_UNIGATE          (1 << 8)
-#define RG_BIAS_GEN_FORCE           (1<14)
-
 #define STRUP_CON2                  (*(volatile uint16_t *)(PMU_BASE + 0x0A88))
 #define RG_STRUP_FLAG_SEL(v)        (((v) & 0xFF) << 0)
 #define RG_STRUP_FLAG_EN            (1 << 8)
 #define QI_STRUP_FLAG_OUT(v)        (((v) >> 9) & 0x0F)
 
-#define STRUP_CON3                  (*(volatile uint16_t *)(PMU_BASE + 0x0A8C))
 #define RG_ESDDEG_EN                (1 << 0)
 #define RG_ESDDEG_DLYSEL(v)         (((v) & 0x07) << 1)
 #define RG_EOSC_CALI_TD(v)          (((v) & 0x07) << 5)

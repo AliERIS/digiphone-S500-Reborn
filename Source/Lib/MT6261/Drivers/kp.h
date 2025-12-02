@@ -36,6 +36,24 @@
 #define KP_SEL                      (*(volatile uint16_t *)(KP_BASE + 0x0020))
 #define KP_SEL_TRIPLE               (0 << 0)
 #define KP_SEL_DOUBLE               (1 << 0)
+
+#define KP_STATUS                   (*(volatile uint16_t *)(KP_BASE + 0x0000))
+#define KP_STA                      (1 << 0)
+#define KP_MEM1                     (*(volatile uint16_t *)(KP_BASE + 0x0004))
+#define KP_MEM2                     (*(volatile uint16_t *)(KP_BASE + 0x0008))
+#define KP_MEM3                     (*(volatile uint16_t *)(KP_BASE + 0x000C))
+#define KP_MEM4                     (*(volatile uint16_t *)(KP_BASE + 0x0010))
+#define KP_MEM5                     (*(volatile uint16_t *)(KP_BASE + 0x0014))
+#define KP_DEBOUNCE                 (*(volatile uint16_t *)(KP_BASE + 0x0018))
+#define KP_DEB(v)                   (((v) & 0x3FFF) << 0)
+#define KP_SCAN_TIMING              (*(volatile uint16_t *)(KP_BASE + 0x001C))
+#define KP_ROW_SCAN(v)              (((v) & 0x0F) << 0)
+#define KP_COL_SCAN(v)              (((v) & 0x0F) << 4)
+#define KP_ROW_INTERVAL(v)          (((v) & 0x0F) << 8)
+#define KP_COL_INTERVAL(v)          (((v) & 0x0F) << 12)
+#define KP_SEL                      (*(volatile uint16_t *)(KP_BASE + 0x0020))
+#define KP_SEL_TRIPLE               (0 << 0)
+#define KP_SEL_DOUBLE               (1 << 0)
 #define KP_SAMPLE(v)                (((v) & 0x1F) << 1)
 #define KP_COL0                     (1 << 11)
 #define KP_COL1                     (1 << 12)
@@ -44,5 +62,21 @@
 #define KP_COL4                     (1 << 15)
 #define KP_EN                       (*(volatile uint16_t *)(KP_BASE + 0x0024))
 #define KP_ENABLE                   (1 << 0)
+
+/* Key Codes */
+typedef enum {
+    KEY_NONE = 0,
+    KEY_1, KEY_2, KEY_3, KEY_4, KEY_5,
+    KEY_6, KEY_7, KEY_8, KEY_9, KEY_0,
+    KEY_STAR, KEY_HASH,
+    KEY_UP, KEY_DOWN, KEY_LEFT, KEY_RIGHT,
+    KEY_OK, KEY_CALL, KEY_END, KEY_BACK
+} TKEY;
+
+void KP_Initialize(void);
+boolean KP_IsKeyPressed(void);
+TKEY KP_ReadKey(void);
+uint32_t KP_GetMatrixState(void);
+void KP_ClearKeyBuffer(void);
 
 #endif /* _KP_H_ */
