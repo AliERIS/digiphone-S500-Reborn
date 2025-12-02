@@ -220,6 +220,7 @@ TKEY KP_ReadKey(void)
     } KeySignature;
     
     const KeySignature signatures[] = {
+        /* Number Keys */
         { 0xCE318, KEY_1 },
         { 0x8E631, KEY_2 },
         { 0xCE73D, KEY_3 },
@@ -232,6 +233,18 @@ TKEY KP_ReadKey(void)
         { 0xC6338, KEY_STAR },
         { 0xCE779, KEY_0 },
         { 0xCE7B9, KEY_HASH },
+        
+        /* Navigation Keys */
+        { 0xCA529, KEY_UP },
+        { 0x8C731, KEY_DOWN },
+        { 0x8C639, KEY_RIGHT },
+        { 0x4A729, KEY_LEFT },
+        { 0xCC631, KEY_OK },
+        
+        /* Function Keys */
+        { 0x4A539, KEY_CALL },
+        { 0xCE73B, KEY_BACK },
+        { 0x4E529, KEY_END },  // OPTIONS button
     };
     
     /* Check if no key is pressed */
