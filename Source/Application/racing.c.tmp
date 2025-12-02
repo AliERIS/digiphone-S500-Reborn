@@ -1,0 +1,162 @@
+
+static void Action_Racing(void)
+{
+    /* Racing Game Configuration */
+    #define ROAD_WIDTH 180
+    #define ROAD_X 30
+    #define LANE_WIDTH 60
+    #define CAR_WIDTH 40
+    #define CAR_HEIGHT 60
+    #define MAX_OBSTACLES 5
+    
+    /* Data Structures */
+    typedef struct {
+        uint8_t lane;      // 0, 1, or 2
+        int16_t y;         // Y position
+        boolean active;
+    } ObstacleCar;
+    
+    uint8_t playerLane = 1;  // Start in middle lane
+    ObstacleCar obstacles[MAX_OBSTACLES];
+    uint16_t score = 0;
+    uint16_t frameCount = 0;
+    uint16_t gameSpeed = 100000;  // Initial speed (100ms)
+    boolean gameOver = false;
+    boolean exitGame = false;
+    int16_t roadOffset = 0;
+    
+    /* Initialize obstacles */
+    for (uint8_t i = 0; i < MAX_OBSTACLES; i++) {
+        obstacles[i].active = false;
+    }
+    
+    /* Draw initial screen */
+    LCD_FillRect(0, 0, 240, 320, 0x0000);
+    LCD_DrawString(5, 2, "RACING", 0xFFFF, 0x0000);
+    LCD_DrawString(150, 2, "SCORE:", 0xFFFF, 0x0000);
+    
+    /* Main game loop */
+    while (!gameOver && !exitGame) {
+        RGU_RestartWDT();
+        
+        /* Handle input */
+        if (KP_IsKeyPressed()) {
+            TKEY key = KP_ReadKey();
+            
+            switch(key) {
+                case KEY_LEFT:
+                    if (playerLane > 0) playerLane--;
+                    break;
+                case KEY_RIGHT:
+                    if (playerLane < 2) playerLane++;
+                    break;
+                case KEY_BACK:
+                    exitGame = true;
+                    break;
+                default:
+                    break;
+            }
+            
+            USC_Pause_us(50000); // Debounce
+        }
+        
+        /* Clear playing area */
+        LCD_FillRect(ROAD_X, 20, ROAD_WIDTH, 280, 0x0000);
+        
+        /* Draw road with lane markers (scrolling effect) */
+        roadOffset = (roadOffset + 5) % 40;
+        for (int16_t y = 20 - roadOffset; y < 300; y += 40) {
+            // Lane marker 1
+            LCD_FillRect(ROAD_X + LANE_WIDTH - 2, y, 4, 20, 0xFFFF);
+            // Lane marker 2
+            LCD_FillRect(ROAD_X + LANE_WIDTH * 2 - 2, y, 4, 20, 0xFFFF);
+        }
+        
+        /* Spawn new obstacle */
+        frameCount++;
+        if (frameCount % 30 == 0) {
+            for (uint8_t i = 0; i < MAX_OBSTACLES; i++) {
+                if (!obstacles[i].active) {
+                    obstacles[i].lane = USC_GetCurrentTicks() % 3;
+                    obstacles[i].y = 20;
+                    obstacles[i].active = true;
+                    break;
+                }
+            }
+        }
+        
+        /* Update and draw obstacles */
+        for (uint8_t i = 0; i < MAX_OBSTACLES; i++) {
+            if (obstacles[i].active) {
+                obstacles[i].y += 5;
+                
+                /* Check if passed player (score) */
+                if (obstacles[i].y > 240 && obstacles[i].y < 245) {
+                    score++;
+                    
+                    /* Update score display */
+                    char scoreStr[10];
+                    scoreStr[0] = '0' + (score / 10);
+                    scoreStr[1] = '0' + (score % 10);
+                    scoreStr[2] = 0;
+                    LCD_DrawString(200, 2, scoreStr, 0x07E0, 0x0000);
+                    
+                    /* Increase speed every 10 points */
+                    if (score % 10 == 0 && gameSpeed > 50000) {
+                        gameSpeed -= 10000;
+                    }
+                }
+                
+                /* Deactivate if off screen */
+                if (obstacles[i].y > 300) {
+                    obstacles[i].active = false;
+                }
+                
+                /* Draw obstacle */
+                if (obstacles[i].active) {
+                    uint16_t obX = ROAD_X + (obstacles[i].lane * LANE_WIDTH) + (LANE_WIDTH - CAR_WIDTH) / 2;
+                    LCD_FillRect(obX, obstacles[i].y, CAR_WIDTH, CAR_HEIGHT, 0xF800); // Red
+                    
+                    /* Check collision with player */
+                    if (obstacles[i].lane == playerLane && 
+                        obstacles[i].y + CAR_HEIGHT > 240 && 
+                        obstacles[i].y < 240 + CAR_HEIGHT) {
+                        gameOver = true;
+                    }
+                }
+            }
+        }
+        
+        /* Draw player car */
+        uint16_t playerX = ROAD_X + (playerLane * LANE_WIDTH) + (LANE_WIDTH - CAR_WIDTH) / 2;
+        LCD_FillRect(playerX, 240, CAR_WIDTH, CAR_HEIGHT, 0x07E0); // Green
+        
+        USC_Pause_us(gameSpeed);
+    }
+    
+    /* Game Over screen */
+    if (gameOver) {
+        LCD_FillRect(0, 0, 240, 320, 0x0000);
+        LCD_DrawString(70, 120, "GAME OVER!", 0xF800, 0x0000);
+        
+        char finalScore[20];
+        finalScore[0] = 'S'; finalScore[1] = 'C'; finalScore[2] = 'O';
+        finalScore[3] = 'R'; finalScore[4] = 'E'; finalScore[5] = ':';
+        finalScore[6] = ' ';
+        finalScore[7] = '0' + (score / 10);
+        finalScore[8] = '0' + (score % 10);
+        finalScore[9] = 0;
+        LCD_DrawString(70, 150, finalScore, 0xFFFF, 0x0000);
+        
+        LCD_DrawString(40, 280, "PRESS BACK TO RETURN", 0xFFE0, 0x0000);
+        
+        while(1) {
+            RGU_RestartWDT();
+            if (KP_IsKeyPressed()) {
+                TKEY key = KP_ReadKey();
+                if (key == KEY_BACK) break;
+            }
+            USC_Pause_us(50000);
+        }
+    }
+}

@@ -20,5 +20,6 @@
 #define _SDCARD_H_
 
 extern boolean SD_Initialize(TMSDC Index);
+extern boolean SD_ReadBlock(TMSDC Index, uint32_t Sector, void *Buffer);
 
 #endif /* _SDCARD_H_ */

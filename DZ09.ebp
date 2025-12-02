@@ -139,6 +139,13 @@
 		<Unit filename="Source\Application\Drivers\usbdevice_cdc.h">
 			<Option target="SYSTEM" />
 		</Unit>
+		<Unit filename="Source\Application\menu.c">
+			<Option compilerVar="CC" />
+			<Option target="SYSTEM" />
+		</Unit>
+		<Unit filename="Source\Application\menu.h">
+			<Option target="SYSTEM" />
+		</Unit>
 		<Unit filename="Source\Bootloader\DZ09_boot.c">
 			<Option compilerVar="CC" />
 			<Option target="BOOTLOADER" />
@@ -424,6 +431,13 @@
 			<Option compilerVar="ASM" />
 			<Option target="SYSTEM" />
 		</Unit>
+		<Unit filename="Source\System\fat32.c">
+			<Option compilerVar="CC" />
+			<Option target="SYSTEM" />
+		</Unit>
+		<Unit filename="Source\System\fat32.h">
+			<Option target="SYSTEM" />
+		</Unit>
 		<Unit filename="Source\System\fscache.c">
 			<Option compilerVar="CC" />
 			<Option target="SYSTEM" />
@@ -457,6 +471,13 @@
 			<Option target="SYSTEM" />
 		</Unit>
 		<Unit filename="Source\System\pmngr.h">
+			<Option target="SYSTEM" />
+		</Unit>
+		<Unit filename="Source\System\resource.c">
+			<Option compilerVar="CC" />
+			<Option target="SYSTEM" />
+		</Unit>
+		<Unit filename="Source\System\resource.h">
 			<Option target="SYSTEM" />
 		</Unit>
 		<Unit filename="Source\System\ringbuf.c">

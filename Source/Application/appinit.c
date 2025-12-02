@@ -27,6 +27,7 @@
 #include "gdifont.h"
 #include "Resource/fontlib.h"
 #include "kp.h"
+#include "menu.h"
 
 /* 5x7 ASCII Font (Minimal Set for "Hello DigiPhone S500 MT6261DA") */
 /* 5x7 ASCII Font (Corrected GLCD Values) */
@@ -115,7 +116,7 @@ void LCD_FillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color
 }
 
 void LCD_DrawChar(uint16_t x, uint16_t y, char c, uint16_t color, uint16_t bg) {
-    if (c < 0x20 || c > 0x5A) c = 0x20; // Bound check (Space to Z)
+    if (c < 0x20 || c > 0x7E) c = 0x20; // Bound check (Space to ~)
     const uint8_t *bitmap = Font5x7[c - 0x20];
 
     LCDIF_WriteCommand(0x2A); // Column
@@ -203,14 +204,6 @@ boolean APP_Initialize(void)
 
         /* Clear Screen to Black */
         LCD_FillRect(0, 0, 240, 320, clBlack);
-        
-        /* Draw Title */
-        LCD_DrawString(80, 20, "KEYPAD TEST", clWhite, clBlack);
-        
-        /* Draw Initial Grid */
-        for(int i=0; i < sizeof(KeypadGrid)/sizeof(KeypadGrid[0]); i++) {
-            DrawKey(&KeypadGrid[i], false);
-        }
 
         /* Turn on backlight */
         BL_TurnOn(true);
@@ -223,22 +216,24 @@ boolean APP_Initialize(void)
         /* Initialize Keypad */
         KP_Initialize();
         RGU_RestartWDT();
-
-        /* Keypad Test Loop */
-        TKEY lastKey = KEY_NONE;
+        
+        /* Initialize Menu System */
+        Menu_Initialize();
+        Menu *currentMenu = Menu_GetRoot();
+        Menu_Render(currentMenu);
         
         /* Backlight Management */
-        uint32_t backlightTimer = 0;
+        uint32_t backlightTimer = USC_GetCurrentTicks();
         boolean backlightOn = true;
-        #define BACKLIGHT_TIMEOUT_MS 30000  // 30 seconds
+        #define BACKLIGHT_TIMEOUT_MS 1800000  // 30 minutes (30 * 60 * 1000)
         
         /* Power Button Management */
         uint32_t pwrPressStartTime = 0;
         boolean pwrWasPressed = false;
         #define PWR_LONG_PRESS_MS 3000      // 3 seconds for shutdown
         
-        /* Draw Matrix Grid Labels */
-        LCD_DrawString(20, 260, "Raw Matrix (R0-R3)", clWhite, clBlack);
+        /* Main Menu Loop */
+        TKEY lastKey = KEY_NONE;
         
         while(1)
         {
@@ -254,7 +249,7 @@ boolean APP_Initialize(void)
             }
             else if (!pwrPressed && pwrWasPressed) {
                 // Power button just released
-                uint32_t pressDuration = (USC_GetCurrentTicks() - pwrPressStartTime) / 1000; // Convert to ms
+                uint32_t pressDuration = (USC_GetCurrentTicks() - pwrPressStartTime) / 1000;
                 
                 if (pressDuration < PWR_LONG_PRESS_MS) {
                     // Short press: Toggle backlight
@@ -262,9 +257,9 @@ boolean APP_Initialize(void)
                     BL_TurnOn(backlightOn);
                     if (backlightOn) {
                         backlightTimer = USC_GetCurrentTicks();
+                        Menu_Render(currentMenu); // Redraw menu when waking up
                     }
                 }
-                // Long press check is done while holding
                 pwrWasPressed = false;
             }
             else if (pwrPressed && pwrWasPressed) {
@@ -272,127 +267,94 @@ boolean APP_Initialize(void)
                 uint32_t pressDuration = (USC_GetCurrentTicks() - pwrPressStartTime) / 1000;
                 
                 if (pressDuration >= PWR_LONG_PRESS_MS) {
-                    // Long press: Shutdown
+                    // Long press: Shutdown sequence
                     LCD_FillRect(0, 0, 240, 320, clBlack);
-                    LCD_DrawString(60, 150, "SHUTTING DOWN...", clWhite, clBlack);
-                    USC_Pause_us(1000000); // Wait 1 second
+                    LCD_DrawString(50, 150, "SHUTTING DOWN...", clWhite, clBlack);
                     
-                    // Actual shutdown
+                    // Disable watchdog to prevent reset during shutdown
+                    RGU_DisableWDT();
+                    
+                    USC_Pause_us(500000); // 0.5 second delay
+                    
+                    // Disable all power systems
                     BL_TurnOn(false);
+                    
+                    // Disable RTC power-up
+                    RTC_Unprotect();
                     RTC_DisablePowerUp();
-                    while(1); // Wait for power to cut
+                    
+                    // Clear power hold bit to allow shutdown
+                    STRUP_CON0 &= ~THR_HWPDN_EN;
+                    
+                    // Infinite loop - device should power off
+                    while(1);
                 }
             }
 
             /* Backlight Auto-Off Timer */
             if (backlightOn) {
-                uint32_t elapsed = (USC_GetCurrentTicks() - backlightTimer) / 1000; // ms
+                uint32_t elapsed = (USC_GetCurrentTicks() - backlightTimer) / 1000;
                 if (elapsed >= BACKLIGHT_TIMEOUT_MS) {
                     backlightOn = false;
                     BL_TurnOn(false);
                 }
             }
 
-            /* 1. Handle Standard Key Logic (Keep existing visual) */
+            /* Handle Menu Navigation */
             if (KP_IsKeyPressed())
             {
                 // Any key press resets backlight timer
                 if (!backlightOn) {
                     backlightOn = true;
                     BL_TurnOn(true);
+                    backlightTimer = USC_GetCurrentTicks();
+                    Menu_Render(currentMenu);
+                    USC_Pause_us(200000); // Debounce
+                    continue;
                 }
                 backlightTimer = USC_GetCurrentTicks();
                 
                 TKEY currentKey = KP_ReadKey();
-                if (currentKey != lastKey) {
-                    if (lastKey != KEY_NONE) {
-                        for(int i=0; i < sizeof(KeypadGrid)/sizeof(KeypadGrid[0]); i++) {
-                            if (KeypadGrid[i].key == lastKey) {
-                                DrawKey(&KeypadGrid[i], false);
+                if (currentKey != KEY_NONE) {
+                    /* Only process if key changed OR enough time passed for repeat */
+                    static uint32_t lastKeyTime = 0;
+                    uint32_t currentTime = USC_GetCurrentTicks();
+                    
+                    if (currentKey != lastKey || (currentTime - lastKeyTime) > 200000) {
+                        lastKey = currentKey;
+                        lastKeyTime = currentTime;
+                        
+                        switch(currentKey) {
+                            case KEY_UP:
+                                Menu_NavigateUp(currentMenu);
+                                Menu_Render(currentMenu);
                                 break;
-                            }
-                        }
-                    }
-                    if (currentKey != KEY_NONE) {
-                         for(int i=0; i < sizeof(KeypadGrid)/sizeof(KeypadGrid[0]); i++) {
-                            if (KeypadGrid[i].key == currentKey) {
-                                DrawKey(&KeypadGrid[i], true);
+                            case KEY_DOWN:
+                                Menu_NavigateDown(currentMenu);
+                                Menu_Render(currentMenu);
                                 break;
-                            }
+                            case KEY_OK:
+                                currentMenu = Menu_Select(currentMenu);
+                                Menu_Render(currentMenu);
+                                break;
+                            case KEY_BACK:
+                                currentMenu = Menu_Back(currentMenu);
+                                Menu_Render(currentMenu);
+                                break;
+                            default:
+                                break;
                         }
+                        
+                        USC_Pause_us(200000); // Debounce
                     }
-                    lastKey = currentKey;
                 }
             }
             else
             {
-                if (lastKey != KEY_NONE) {
-                     for(int i=0; i < sizeof(KeypadGrid)/sizeof(KeypadGrid[0]); i++) {
-                        if (KeypadGrid[i].key == lastKey) {
-                            DrawKey(&KeypadGrid[i], false);
-                            break;
-                        }
-                    }
-                    lastKey = KEY_NONE;
-                }
+                lastKey = KEY_NONE;
             }
-            
-            /* 2. Draw Raw Matrix State */
-            uint32_t matrix = KP_GetMatrixState();
-            
-            for(int r=0; r<4; r++) {
-                for(int c=0; c<5; c++) {
-                    int bitIndex = (r*5) + c;
-                    boolean active = (matrix >> bitIndex) & 0x01;
-                    
-                    uint16_t color = active ? clRed : clGray;
-                    // Draw small circle/rect
-                    int mx = 20 + (c * 20);
-                    int my = 280 + (r * 10);
-                    LCD_FillRect(mx, my, 15, 8, color);
-                }
-            }
-            
-            /* DEBUG: Show raw matrix value */
-            char matrixHex[16];
-            uint32_t tempMatrix = matrix;
-            for(int i=0; i<5; i++) {
-                uint8_t nibble = (tempMatrix >> (16 - i*4)) & 0x0F;
-                matrixHex[i] = (nibble < 10) ? ('0' + nibble) : ('A' + nibble - 10);
-            }
-            matrixHex[5] = 0;
-            LCD_DrawString(20, 245, "M:", clYellow, clBlack);
-            LCD_DrawString(32, 245, matrixHex, clYellow, clBlack);
-            
-            /* 3. Draw Power Key Status */
-            LCD_DrawString(140, 260, "PWR:", clWhite, clBlack);
-            LCD_DrawChar(170, 260, pwrPressed ? '1' : '0', pwrPressed ? clGreen : clRed, clBlack);
 
-            USC_Pause_us(50000); // 50ms
-            
-            /* Heartbeat */
-            static int heartbeat = 0;
-            heartbeat++;
-            if ((heartbeat % 10) == 0) {
-                 int digit = (heartbeat/10) % 5; 
-                 const uint8_t *bmp = &Font5x7[13*5];
-                 if(digit==1) bmp = &Font5x7[18*5];
-                 if(digit==2) bmp = &Font5x7[17*5];
-                 if(digit==3) bmp = &Font5x7[12*5];
-                 if(digit==4) bmp = &Font5x7[16*5];
-                 LCD_DrawChar(200, 10, bmp, clWhite, clRed);
-                 
-                 /* DEBUG: Show Last Key Code Raw */
-                 LCD_DrawChar(160, 30, 'K', clWhite, clBlack);
-                 LCD_DrawChar(166, 30, ':', clWhite, clBlack);
-                 uint8_t val = (uint8_t)lastKey;
-                 uint8_t h = val >> 4;
-                 uint8_t l = val & 0x0F;
-                 if(h < 10) LCD_DrawChar(172, 30, (char)('0'+h), clWhite, clBlack);
-                 else LCD_DrawChar(172, 30, (char)('A'+h-10), clWhite, clBlack);
-                 if(l < 10) LCD_DrawChar(178, 30, (char)('0'+l), clWhite, clBlack);
-                 else LCD_DrawChar(178, 30, (char)('A'+l-10), clWhite, clBlack);
-            }
+            USC_Pause_us(50000); // 50ms loop delay
         }
 
         return true;

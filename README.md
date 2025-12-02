@@ -15,5 +15,14 @@
 - Backlight
 - Power Button
 - Keypad
+- 2 Oyun
+
 # Ne çalışmıyor
-- Geri Kalan Her Şey
+- GSM GPRS (SMS, Internet)
+- SD kart
+- File Manager
+- bluetooth
+- tuş aydınlatması
+- fener
+- ses
+

@@ -268,5 +268,9 @@ typedef struct tag_MSDC_CONTEXT
 #define MSDC1                       ((volatile TMSDCREGS*)MSDC1_BASE)                               // Note: Only the serial interface is available for MSDC1.
 
 extern boolean MSDC_IsMultiLineSupported(TMSDC Index);
+extern void MSDC_Init(TMSDC Index);
+extern boolean MSDC_SendCommand(TMSDC Index, uint32_t Cmd, uint32_t Arg, uint32_t *Resp);
+extern boolean MSDC_ReadData(TMSDC Index, void *Buffer, uint32_t Length);
+extern void MSDC_SetClock(TMSDC Index, uint32_t Frequency);
 
 #endif /* _MSDC_H_ */
