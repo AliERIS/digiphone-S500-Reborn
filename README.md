@@ -12,5 +12,8 @@
 
 # Ne çalışıyor 
 - Ekran
+- Backlight
+- Power Button
+- Keypad
 # Ne çalışmıyor
 - Geri Kalan Her Şey
