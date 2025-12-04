@@ -16,6 +16,8 @@
 - Power Button
 - Keypad
 - 2 Oyun
+- Ses
+
 
 # Ne çalışmıyor
 - GSM GPRS (SMS, Internet)
@@ -24,5 +26,10 @@
 - bluetooth
 - tuş aydınlatması
 - fener
-- ses
+- Video Oynatma
+- orijinal yazılıma ayarlardan geçme
 
+# BUGS
+- Random reboot
+- bazen ekranın kararması ve kendi istediği zaman geri gelmesi
+- yer yer flickering
