@@ -84,6 +84,13 @@
 			<Add option="-eb_lib=n" />
 			<Add option="-Wl,--gc-sections" />
 		</Linker>
+		<Unit filename="Source\Application\advanced_info.c">
+			<Option compilerVar="CC" />
+			<Option target="SYSTEM" />
+		</Unit>
+		<Unit filename="Source\Application\advanced_info.h">
+			<Option target="SYSTEM" />
+		</Unit>
 		<Unit filename="Source\Application\appconfig.h">
 			<Option target="SYSTEM" />
 		</Unit>
@@ -92,6 +99,13 @@
 			<Option target="SYSTEM" />
 		</Unit>
 		<Unit filename="Source\Application\appinit.h">
+			<Option target="SYSTEM" />
+		</Unit>
+		<Unit filename="Source\Application\boot_logo.c">
+			<Option compilerVar="CC" />
+			<Option target="SYSTEM" />
+		</Unit>
+		<Unit filename="Source\Application\boot_logo.h">
 			<Option target="SYSTEM" />
 		</Unit>
 		<Unit filename="Source\Application\Drivers\appdrivers.h">
@@ -118,6 +132,13 @@
 		<Unit filename="Source\Application\Drivers\ft6236.h">
 			<Option target="SYSTEM" />
 		</Unit>
+		<Unit filename="Source\Application\Drivers\fw_loader.c">
+			<Option compilerVar="CC" />
+			<Option target="SYSTEM" />
+		</Unit>
+		<Unit filename="Source\Application\Drivers\fw_loader.h">
+			<Option target="SYSTEM" />
+		</Unit>
 		<Unit filename="Source\Application\Drivers\ili9341.c">
 			<Option compilerVar="CC" />
 			<Option target="SYSTEM" />
@@ -139,11 +160,35 @@
 		<Unit filename="Source\Application\Drivers\usbdevice_cdc.h">
 			<Option target="SYSTEM" />
 		</Unit>
+		<Unit filename="Source\Application\memory_browser.c">
+			<Option compilerVar="CC" />
+			<Option target="SYSTEM" />
+		</Unit>
+		<Unit filename="Source\Application\memory_browser.h">
+			<Option target="SYSTEM" />
+		</Unit>
 		<Unit filename="Source\Application\menu.c">
 			<Option compilerVar="CC" />
 			<Option target="SYSTEM" />
 		</Unit>
 		<Unit filename="Source\Application\menu.h">
+			<Option target="SYSTEM" />
+		</Unit>
+		<Unit filename="Source\Application\racing.c.tmp">
+			<Option target="SYSTEM" />
+		</Unit>
+		<Unit filename="Source\Application\ram_files.c">
+			<Option compilerVar="CC" />
+			<Option target="SYSTEM" />
+		</Unit>
+		<Unit filename="Source\Application\ram_files.h">
+			<Option target="SYSTEM" />
+		</Unit>
+		<Unit filename="Source\Application\resources_viewer.c">
+			<Option compilerVar="CC" />
+			<Option target="SYSTEM" />
+		</Unit>
+		<Unit filename="Source\Application\resources_viewer.h">
 			<Option target="SYSTEM" />
 		</Unit>
 		<Unit filename="Source\Bootloader\DZ09_boot.c">

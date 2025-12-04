@@ -71,6 +71,10 @@ typedef struct tag_MSDC_CONTEXT
 #define MSDC_RST                    (1 << 1)
 #define MSDC_NOCRC                  (1 << 2)
 #define MSDC_CLKSRC(v)              (((v) & 0x03) << 3)
+#define MSDC_CLKSRC_MPLL_5_5MHZ     0
+#define MSDC_CLKSRC_MPLL_7MHZ       1  // Default
+#define MSDC_CLKSRC_MPLL_8MHZ       2
+#define MSDC_CLKSRC_MPLL_10MHZ      3
 #define MSDC_STDBY                  (1 << 5)
 #define MSDC_CRED                   (1 << 6)
 #define MSDC_SCLKON                 (1 >> 7)

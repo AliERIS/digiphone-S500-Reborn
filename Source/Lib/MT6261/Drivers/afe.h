@@ -248,5 +248,6 @@ extern void AFE_TurnOnSpeaker(boolean On);
 extern boolean AFE_SetAudioSampleRate(TASR Rate);
 extern void AFE_initialize(void);
 extern void Beep(void);
+extern void PlayTone(uint8_t tone_div, uint32_t duration_ms);
 
 #endif /* _AFE_H_ */

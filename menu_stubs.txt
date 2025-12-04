@@ -1,0 +1,164 @@
+
+/* ============================================================================
+ * STUB IMPLEMENTATIONS FOR APPS, SETTINGS, AND ADDITIONAL GAMES
+ * These are placeholder implementations showing "NOT IMPLEMENTED YET"
+ * ============================================================================ */
+
+/* Apps Stubs */
+static void Action_Calculator(void)
+{
+    LCD_FillRect(0, 0, SCR_WIDTH, SCR_HEIGHT, 0x0000);
+    LCD_DrawString(20, 100, "CALCULATOR", 0xFFFF, 0x0000);
+    LCD_DrawString(20, 120, "NOT IMPLEMENTED YET", 0xFFE0, 0x0000);
+    LCD_DrawString(20, 160, "PRESS ANY KEY", 0x07E0, 0x0000);
+    while (!KP_IsKeyPressed()) {
+        USC_Pause_us(50000);
+        RGU_RestartWDT();
+    }
+    KP_ReadKey();
+}
+
+static void Action_Clock(void)
+{
+    LCD_FillRect(0, 0, SCR_WIDTH, SCR_HEIGHT, 0x0000);
+    LCD_DrawString(20, 100, "CLOCK", 0xFFFF, 0x0000);
+    LCD_DrawString(20, 120, "NOT IMPLEMENTED YET", 0xFFE0, 0x0000);
+    LCD_DrawString(20, 160, "PRESS ANY KEY", 0x07E0, 0x0000);
+    while (!KP_IsKeyPressed()) {
+        USC_Pause_us(50000);
+        RGU_RestartWDT();
+    }
+    KP_ReadKey();
+}
+
+static void Action_Calendar(void)
+{
+    LCD_FillRect(0, 0, SCR_WIDTH, SCR_HEIGHT, 0x0000);
+    LCD_DrawString(20, 100, "CALENDAR", 0xFFFF, 0x0000);
+    LCD_DrawString(20, 120, "NOT IMPLEMENTED YET", 0xFFE0, 0x0000);
+    LCD_DrawString(20, 160, "PRESS ANY KEY", 0x07E0, 0x0000);
+    while (!KP_IsKeyPressed()) {
+        USC_Pause_us(50000);
+        RGU_RestartWDT();
+    }
+    KP_ReadKey();
+}
+
+static void Action_Notes(void)
+{
+    LCD_FillRect(0, 0, SCR_WIDTH, SCR_HEIGHT, 0x0000);
+    LCD_DrawString(20, 100, "NOTES", 0xFFFF, 0x0000);
+    LCD_DrawString(20, 120, "NOT IMPLEMENTED YET", 0xFFE0, 0x0000);
+    LCD_DrawString(20, 160, "PRESS ANY KEY", 0x07E0, 0x0000);
+    while (!KP_IsKeyPressed()) {
+        USC_Pause_us(50000);
+        RGU_RestartWDT();
+    }
+    KP_ReadKey();
+}
+
+/* Settings Stubs */
+static void Action_BrightnessSettings(void)
+{
+    LCD_FillRect(0, 0, SCR_WIDTH, SCR_HEIGHT, 0x0000);
+    LCD_DrawString(20, 100, "BRIGHTNESS", 0xFFFF, 0x0000);
+    LCD_DrawString(20, 120, "NOT IMPLEMENTED YET", 0xFFE0, 0x0000);
+    LCD_DrawString(20, 160, "PRESS ANY KEY", 0x07E0, 0x0000);
+    while (!KP_IsKeyPressed()) {
+        USC_Pause_us(50000);
+        RGU_RestartWDT();
+    }
+    KP_ReadKey();
+}
+
+static void Action_TimeSettings(void)
+{
+    LCD_FillRect(0, 0, SCR_WIDTH, SCR_HEIGHT, 0x0000);
+    LCD_DrawString(20, 100, "TIME SETTINGS", 0xFFFF, 0x0000);
+    LCD_DrawString(20, 120, "NOT IMPLEMENTED YET", 0xFFE0, 0x0000);
+    LCD_DrawString(20, 160, "PRESS ANY KEY", 0x07E0, 0x0000);
+    while (!KP_IsKeyPressed()) {
+        USC_Pause_us(50000);
+        RGU_RestartWDT();
+    }
+    KP_ReadKey();
+}
+
+static void Action_LanguageSettings(void)
+{
+    LCD_FillRect(0, 0, SCR_WIDTH, SCR_HEIGHT, 0x0000);
+    LCD_DrawString(20, 100, "LANGUAGE", 0xFFFF, 0x0000);
+    LCD_DrawString(20, 120, "NOT IMPLEMENTED YET", 0xFFE0, 0x0000);
+    LCD_DrawString(20, 160, "PRESS ANY KEY", 0x07E0, 0x0000);
+    while (!KP_IsKeyPressed()) {
+        USC_Pause_us(50000);
+        RGU_RestartWDT();
+    }
+    KP_ReadKey();
+}
+
+static void Action_SoundSettings(void)
+{
+    LCD_FillRect(0, 0, SCR_WIDTH, SCR_HEIGHT, 0x0000);
+    LCD_DrawString(20, 100, "SOUND SETTINGS", 0xFFFF, 0x0000);
+    LCD_DrawString(20, 120, "NOT IMPLEMENTED YET", 0xFFE0, 0x0000);
+    LCD_DrawString(20, 160, "PRESS ANY KEY", 0x07E0, 0x0000);
+    while (!KP_IsKeyPressed()) {
+        USC_Pause_us(50000);
+        RGU_RestartWDT();
+    }
+    KP_ReadKey();
+}
+
+/* Game Stubs */
+static void Action_Tetris(void)
+{
+    LCD_FillRect(0, 0, SCR_WIDTH, SCR_HEIGHT, 0x0000);
+    LCD_DrawString(20, 100, "TETRIS", 0xFFFF, 0x0000);
+    LCD_DrawString(20, 120, "NOT IMPLEMENTED YET", 0xFFE0, 0x0000);
+    LCD_DrawString(20, 160, "PRESS ANY KEY", 0x07E0, 0x0000);
+    while (!KP_IsKeyPressed()) {
+        USC_Pause_us(50000);
+        RGU_RestartWDT();
+    }
+    KP_ReadKey();
+}
+
+static void Action_Pong(void)
+{
+    LCD_FillRect(0, 0, SCR_WIDTH, SCR_HEIGHT, 0x0000);
+    LCD_DrawString(20, 100, "PONG", 0xFFFF, 0x0000);
+    LCD_DrawString(20, 120, "NOT IMPLEMENTED YET", 0xFFE0, 0x0000);
+    LCD_DrawString(20, 160, "PRESS ANY KEY", 0x07E0, 0x0000);
+    while (!KP_IsKeyPressed()) {
+        USC_Pause_us(50000);
+        RGU_RestartWDT();
+    }
+    KP_ReadKey();
+}
+
+static void Action_TicTacToe(void)
+{
+    LCD_FillRect(0, 0, SCR_WIDTH, SCR_HEIGHT, 0x0000);
+    LCD_DrawString(20, 100, "TIC TAC TOE", 0xFFFF, 0x0000);
+    LCD_DrawString(20, 120, "NOT IMPLEMENTED YET", 0xFFE0, 0x0000);
+    LCD_DrawString(20, 160, "PRESS ANY KEY", 0x07E0, 0x0000);
+    while (!KP_IsKeyPressed()) {
+        USC_Pause_us(50000);
+        RGU_RestartWDT();
+    }
+    KP_ReadKey();
+}
+
+static void Action_MemoryGame(void)
+{
+    LCD_FillRect(0, 0, SCR_WIDTH, SCR_HEIGHT, 0x0000);
+    LCD_DrawString(20, 100, "MEMORY GAME", 0xFFFF, 0x0000);
+    LCD_DrawString(20, 120, "NOT IMPLEMENTED YET", 0xFFE0, 0x0000);
+    LCD_DrawString(20, 160, "PRESS ANY KEY", 0x07E0, 0x0000);
+    while (!KP_IsKeyPressed()) {
+        USC_Pause_us(50000);
+        RGU_RestartWDT();
+    }
+    KP_ReadKey();
+}

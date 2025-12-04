@@ -99,4 +99,8 @@ extern int FAT32_ListDirectory(uint32_t cluster, FileEntry *files, int maxFiles)
 extern int FAT32_ListRoot(FileEntry *files, int maxFiles);
 extern uint32_t FAT32_GetSubdirCluster(const char *name, uint32_t parentCluster);
 
+/* Internal functions (for firmware loader) */
+extern uint32_t GetFATEntry(uint32_t cluster);
+extern FAT32_Context g_fat32;
+
 #endif /* _FAT32_H_ */

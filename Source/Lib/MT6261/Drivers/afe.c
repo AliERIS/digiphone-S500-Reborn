@@ -310,3 +310,27 @@ void Beep(void)
     USC_Pause_us(50000);
     AFE_DAC_TEST &= ~(VDAC_SINUS | ADAC_SINUS);
 }
+
+void PlayTone(uint8_t tone_div, uint32_t duration_ms)
+{
+    /* Enable Sine Wave Generation with specified frequency divider */
+    /* Lower divider = Higher frequency */
+    AFE_DAC_TEST = VDAC_SINUS | ADAC_SINUS | AMP_DIV(7) | FREQ_DIV(tone_div);
+    
+    /* Wait for duration with WDT kicking */
+    /* Split delay into smaller chunks to keep watchdog happy */
+    uint32_t remaining = duration_ms * 1000;
+    while (remaining > 0) {
+        RGU_RestartWDT(); // Kick watchdog
+        uint32_t chunk = (remaining > 50000) ? 50000 : remaining; // 50ms chunks
+        USC_Pause_us(chunk);
+        remaining -= chunk;
+    }
+    
+    /* Disable Sine Wave */
+    AFE_DAC_TEST &= ~(VDAC_SINUS | ADAC_SINUS);
+    
+    /* Small pause between notes to articulate them */
+    USC_Pause_us(20000); 
+    RGU_RestartWDT(); // Kick watchdog
+}

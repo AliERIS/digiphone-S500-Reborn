@@ -9,7 +9,7 @@
 #include "debug.h"
 #include "rgu.h"
 
-static FAT32_Context g_fat32;
+FAT32_Context g_fat32;
 static uint8_t g_sectorBuffer[512];
 
 /* Helper: Read sector from SD card */
@@ -22,7 +22,7 @@ static boolean ReadSector(uint32_t sector, void *buffer)
 }
 
 /* Helper: Get FAT entry for cluster */
-static uint32_t GetFATEntry(uint32_t cluster)
+uint32_t GetFATEntry(uint32_t cluster)
 {
     if (cluster < 2 || cluster >= FAT32_EOC) {
         return FAT32_EOC; // Invalid cluster

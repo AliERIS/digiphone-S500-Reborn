@@ -5,6 +5,7 @@
 #include "sdcard.h"
 #include "msdc.h"
 #include "debug.h"
+#include <stdio.h>
 
 /* SD Commands */
 #define CMD0    0
@@ -44,10 +45,9 @@ boolean SD_Initialize(TMSDC Index)
     
     LCD_DrawString(20, 120, "SD: INIT CTRL", 0xFFFF, 0x0000);
     
-    /* 1. Initialize Controller */
+    /* 1. Initialize Controller (sets 400kHz clock internally) */
     RGU_RestartWDT(); // Restart watchdog before MSDC init
     MSDC_Init(Index);
-    MSDC_SetClock(Index, 400000); // 400kHz for init
     RGU_RestartWDT(); // Restart watchdog after MSDC init
     
     /* Wait for controller and card to stabilize */
@@ -55,39 +55,49 @@ boolean SD_Initialize(TMSDC Index)
     
     LCD_DrawString(20, 120, "SD: SEND CMD0", 0xFFFF, 0x0000);
     
-    /* 2. CMD0: Go Idle State - Send multiple times to ensure card is in idle */
+    /* 2. CMD0: Go Idle State */
     {
         int retry;
-        for (retry = 0; retry < 20; retry++) { // Increased retries to 20
+        for (retry = 0; retry < 10; retry++) {
+            USC_Pause_us(1000);
             if (SendCmd(Index, SDC_CMD(CMD0) | SDC_RSPTYP(SDC_NO_RSP), 0, NULL)) {
-                USC_Pause_us(20000); // 20ms delay after successful CMD0
                 break;
             }
-            USC_Pause_us(20000); // 20ms wait before retry
         }
-        if (retry == 20) {
-            DebugPrint("CMD0 Failed after retries\n");
-            LCD_DrawString(20, 140, "SD: CMD0 FAIL", 0xF800, 0x0000);
+        if (retry == 10) {
+            LCD_FillRect(0, 0, 240, 320, 0x0000);
+            LCD_DrawString(20, 140, "ERROR CODE: 01", 0xF800, 0x0000);
+            LCD_DrawString(20, 160, "CMD0 FAILED", 0xFFFF, 0x0000);
             return false;
         }
     }
     
-    /* Verify CMD0 succeeded by checking if we can proceed */
-    USC_Pause_us(50000); // 50ms additional delay before next command
-    RGU_RestartWDT(); // Restart watchdog after CMD0
-    
-    LCD_DrawString(20, 120, "SD: SEND CMD8", 0xFFFF, 0x0000);
+    USC_Pause_us(20000);
+    RGU_RestartWDT();
     
     /* 3. CMD8: Send Interface Condition */
-    RGU_RestartWDT(); // Restart watchdog before CMD8
     if (!SendCmd(Index, SDC_CMD(CMD8) | SDC_RSPTYP(SDC_RSP_R1), 0x1AA, resp)) {
-        DebugPrint("CMD8 Failed\n");
-        LCD_DrawString(20, 140, "SD: CMD8 FAIL", 0xF800, 0x0000);
+        LCD_FillRect(0, 0, 240, 320, 0x0000);
+        LCD_DrawString(20, 140, "ERROR CODE: 02", 0xF800, 0x0000);
+        LCD_DrawString(20, 160, "CMD8 SEND FAIL", 0xFFFF, 0x0000);
         return false;
     }
+    
     if ((resp[0] & 0xFF) != 0xAA) {
-        DebugPrint("CMD8 Check Pattern Failed\n");
-        LCD_DrawString(20, 140, "SD: CMD8 PAT", 0xF800, 0x0000);
+        LCD_FillRect(0, 0, 240, 320, 0x0000);
+        LCD_DrawString(20, 80, "ERROR CODE: 03", 0xF800, 0x0000);
+        LCD_DrawString(20, 100, "CMD8 PATTERN FAIL", 0xFFFF, 0x0000);
+        char buf[40];
+        sprintf(buf, "ARG:  000001AA");
+        LCD_DrawString(20, 120, buf, 0x07E0, 0x0000);
+        sprintf(buf, "R0:   %08X", (unsigned int)resp[0]);
+        LCD_DrawString(20, 140, buf, 0xFFE0, 0x0000);
+        sprintf(buf, "R1:   %08X", (unsigned int)resp[1]);
+        LCD_DrawString(20, 160, buf, 0xFFE0, 0x0000);
+        sprintf(buf, "R2:   %08X", (unsigned int)resp[2]);
+        LCD_DrawString(20, 180, buf, 0xFFE0, 0x0000);
+        sprintf(buf, "R3:   %08X", (unsigned int)resp[3]);
+        LCD_DrawString(20, 200, buf, 0xFFE0, 0x0000);
         return false;
     }
     

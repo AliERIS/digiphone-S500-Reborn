@@ -5,6 +5,11 @@
 #include "menu.h"
 #include "lcdif.h"
 #include "fat32.h"
+#include "memory_browser.h"
+#include "ram_files.h"
+#include "resources_viewer.h"
+#include "advanced_info.h"
+#include "afe.h"
 
 /* Forward declarations for menu actions */
 static void Action_Settings(void);
@@ -15,18 +20,71 @@ static void Action_About(void);
 static void Action_Snake(void);
 static void Action_Racing(void);
 static void Action_FileManager(void);
+/* New game actions */
+static void Action_Tetris(void);
+static void Action_Pong(void);
+static void Action_TicTacToe(void);
+static void Action_MemoryGame(void);
+/* Settings actions */
+static void Action_BrightnessSettings(void);
+static void Action_TimeSettings(void);
+static void Action_LanguageSettings(void);
+static void Action_SoundSettings(void);
+/* Phone apps */
+static void Action_Calculator(void);
+static void Action_Clock(void);
+static void Action_Calendar(void);
+static void Action_Notes(void);
+static void Action_BeepTest(void);
 
 /* Tools Submenu */
 static MenuItem toolsItems[] = {
     { "BACKLIGHT", MENU_ACTION_FUNCTION, .action.function = Action_BacklightSettings },
     { "SYSTEM INFO", MENU_ACTION_FUNCTION, .action.function = Action_SystemInfo },
     { "FILE MANAGER", MENU_ACTION_FUNCTION, .action.function = Action_FileManager },
+    { "MEMORY BROWSER", MENU_ACTION_FUNCTION, .action.function = Action_MemoryBrowser },
+    { "RAM FILES", MENU_ACTION_FUNCTION, .action.function = Action_RAMFiles },
+    { "RESOURCES", MENU_ACTION_FUNCTION, .action.function = Action_Resources },
+    { "ADVANCED INFO", MENU_ACTION_FUNCTION, .action.function = Action_AdvancedInfo },
+    { "BEEP TEST", MENU_ACTION_FUNCTION, .action.function = Action_BeepTest },
 };
 
 static Menu toolsMenu = {
     .title = "Tools",
     .items = toolsItems,
-    .itemCount = 3,
+    .itemCount = 8,
+    .selectedIndex = 0,
+    .parent = NULL
+};
+
+/* Apps Submenu */
+static MenuItem appsItems[] = {
+    { "CALCULATOR", MENU_ACTION_FUNCTION, .action.function = Action_Calculator },
+    { "CLOCK", MENU_ACTION_FUNCTION, .action.function = Action_Clock },
+    { "CALENDAR", MENU_ACTION_FUNCTION, .action.function = Action_Calendar },
+    { "NOTES", MENU_ACTION_FUNCTION, .action.function = Action_Notes },
+};
+
+static Menu appsMenu = {
+    .title = "APPS",
+    .items = appsItems,
+    .itemCount = 4,
+    .selectedIndex = 0,
+    .parent = NULL
+};
+
+/* Settings Submenu */
+static MenuItem settingsItems[] = {
+    { "BRIGHTNESS", MENU_ACTION_FUNCTION, .action.function = Action_BrightnessSettings },
+    { "TIME", MENU_ACTION_FUNCTION, .action.function = Action_TimeSettings },
+    { "LANGUAGE", MENU_ACTION_FUNCTION, .action.function = Action_LanguageSettings },
+    { "SOUND", MENU_ACTION_FUNCTION, .action.function = Action_SoundSettings },
+};
+
+static Menu settingsMenu = {
+    .title = "SETTINGS",
+    .items = settingsItems,
+    .itemCount = 4,
     .selectedIndex = 0,
     .parent = NULL
 };
@@ -35,20 +93,25 @@ static Menu toolsMenu = {
 static MenuItem gamesItems[] = {
     { "SNAKE", MENU_ACTION_FUNCTION, .action.function = Action_Snake },
     { "RACING", MENU_ACTION_FUNCTION, .action.function = Action_Racing },
+    { "TETRIS", MENU_ACTION_FUNCTION, .action.function = Action_Tetris },
+    { "PONG", MENU_ACTION_FUNCTION, .action.function = Action_Pong },
+    { "TIC TAC TOE", MENU_ACTION_FUNCTION, .action.function = Action_TicTacToe },
+    { "MEMORY", MENU_ACTION_FUNCTION, .action.function = Action_MemoryGame },
 };
 
 static Menu gamesMenu = {
     .title = "GAMES",
     .items = gamesItems,
-    .itemCount = 2,
+    .itemCount = 6,
     .selectedIndex = 0,
     .parent = NULL
 };
 
 /* Main Menu */
 static MenuItem mainItems[] = {
-    { "SETTINGS", MENU_ACTION_FUNCTION, .action.function = Action_Settings },
+    { "APPS", MENU_ACTION_SUBMENU, .action.submenu = &appsMenu },
     { "GAMES", MENU_ACTION_SUBMENU, .action.submenu = &gamesMenu },
+    { "SETTINGS", MENU_ACTION_SUBMENU, .action.submenu = &settingsMenu },
     { "TOOLS", MENU_ACTION_SUBMENU, .action.submenu = &toolsMenu },
     { "ABOUT", MENU_ACTION_FUNCTION, .action.function = Action_About },
 };
@@ -56,7 +119,7 @@ static MenuItem mainItems[] = {
 static Menu mainMenu = {
     .title = "MAIN MENU",
     .items = mainItems,
-    .itemCount = 4,
+    .itemCount = 5,
     .selectedIndex = 0,
     .parent = NULL
 };
@@ -68,7 +131,9 @@ extern void LCD_DrawString(uint16_t x, uint16_t y, const char* str, uint16_t col
 void Menu_Initialize(void)
 {
     /* Set parent pointers */
+    appsMenu.parent = &mainMenu;
     gamesMenu.parent = &mainMenu;
+    settingsMenu.parent = &mainMenu;
     toolsMenu.parent = &mainMenu;
 }
 
@@ -751,6 +816,244 @@ static void Action_FileManager(void)
             }
             USC_Pause_us(150000);
         }
+    }
+    
+    Menu_InvalidateCache();
+}
+
+/* ============================================================================
+ * STUB IMPLEMENTATIONS FOR APPS, SETTINGS, AND ADDITIONAL GAMES
+ * These are placeholder implementations showing "NOT IMPLEMENTED YET"
+ * ============================================================================ */
+
+/* Apps Stubs */
+static void Action_Calculator(void)
+{
+    LCD_FillRect(0, 0, 240, 320, 0x0000);
+    LCD_DrawString(20, 100, "CALCULATOR", 0xFFFF, 0x0000);
+    LCD_DrawString(20, 120, "NOT IMPLEMENTED YET", 0xFFE0, 0x0000);
+    LCD_DrawString(20, 160, "PRESS ANY KEY", 0x07E0, 0x0000);
+    while (!KP_IsKeyPressed()) {
+        USC_Pause_us(50000);
+        RGU_RestartWDT();
+    }
+    KP_ReadKey();
+}
+
+static void Action_Clock(void)
+{
+    LCD_FillRect(0, 0, 240, 320, 0x0000);
+    LCD_DrawString(20, 100, "CLOCK", 0xFFFF, 0x0000);
+    LCD_DrawString(20, 120, "NOT IMPLEMENTED YET", 0xFFE0, 0x0000);
+    LCD_DrawString(20, 160, "PRESS ANY KEY", 0x07E0, 0x0000);
+    while (!KP_IsKeyPressed()) {
+        USC_Pause_us(50000);
+        RGU_RestartWDT();
+    }
+    KP_ReadKey();
+}
+
+static void Action_Calendar(void)
+{
+    LCD_FillRect(0, 0, 240, 320, 0x0000);
+    LCD_DrawString(20, 100, "CALENDAR", 0xFFFF, 0x0000);
+    LCD_DrawString(20, 120, "NOT IMPLEMENTED YET", 0xFFE0, 0x0000);
+    LCD_DrawString(20, 160, "PRESS ANY KEY", 0x07E0, 0x0000);
+    while (!KP_IsKeyPressed()) {
+        USC_Pause_us(50000);
+        RGU_RestartWDT();
+    }
+    KP_ReadKey();
+}
+
+static void Action_Notes(void)
+{
+    LCD_FillRect(0, 0, 240, 320, 0x0000);
+    LCD_DrawString(20, 100, "NOTES", 0xFFFF, 0x0000);
+    LCD_DrawString(20, 120, "NOT IMPLEMENTED YET", 0xFFE0, 0x0000);
+    LCD_DrawString(20, 160, "PRESS ANY KEY", 0x07E0, 0x0000);
+    while (!KP_IsKeyPressed()) {
+        USC_Pause_us(50000);
+        RGU_RestartWDT();
+    }
+    KP_ReadKey();
+}
+
+/* Settings Stubs */
+static void Action_BrightnessSettings(void)
+{
+    LCD_FillRect(0, 0, 240, 320, 0x0000);
+    LCD_DrawString(20, 100, "BRIGHTNESS", 0xFFFF, 0x0000);
+    LCD_DrawString(20, 120, "NOT IMPLEMENTED YET", 0xFFE0, 0x0000);
+    LCD_DrawString(20, 160, "PRESS ANY KEY", 0x07E0, 0x0000);
+    while (!KP_IsKeyPressed()) {
+        USC_Pause_us(50000);
+        RGU_RestartWDT();
+    }
+    KP_ReadKey();
+}
+
+static void Action_TimeSettings(void)
+{
+    LCD_FillRect(0, 0, 240, 320, 0x0000);
+    LCD_DrawString(20, 100, "TIME SETTINGS", 0xFFFF, 0x0000);
+    LCD_DrawString(20, 120, "NOT IMPLEMENTED YET", 0xFFE0, 0x0000);
+    LCD_DrawString(20, 160, "PRESS ANY KEY", 0x07E0, 0x0000);
+    while (!KP_IsKeyPressed()) {
+        USC_Pause_us(50000);
+        RGU_RestartWDT();
+    }
+    KP_ReadKey();
+}
+
+static void Action_LanguageSettings(void)
+{
+    LCD_FillRect(0, 0, 240, 320, 0x0000);
+    LCD_DrawString(20, 100, "LANGUAGE", 0xFFFF, 0x0000);
+    LCD_DrawString(20, 120, "NOT IMPLEMENTED YET", 0xFFE0, 0x0000);
+    LCD_DrawString(20, 160, "PRESS ANY KEY", 0x07E0, 0x0000);
+    while (!KP_IsKeyPressed()) {
+        USC_Pause_us(50000);
+        RGU_RestartWDT();
+    }
+    KP_ReadKey();
+}
+
+static void Action_SoundSettings(void)
+{
+    LCD_FillRect(0, 0, 240, 320, 0x0000);
+    LCD_DrawString(20, 100, "SOUND SETTINGS", 0xFFFF, 0x0000);
+    LCD_DrawString(20, 120, "NOT IMPLEMENTED YET", 0xFFE0, 0x0000);
+    LCD_DrawString(20, 160, "PRESS ANY KEY", 0x07E0, 0x0000);
+    while (!KP_IsKeyPressed()) {
+        USC_Pause_us(50000);
+        RGU_RestartWDT();
+    }
+    KP_ReadKey();
+}
+
+/* Game Stubs */
+static void Action_Tetris(void)
+{
+    LCD_FillRect(0, 0, 240, 320, 0x0000);
+    LCD_DrawString(20, 100, "TETRIS", 0xFFFF, 0x0000);
+    LCD_DrawString(20, 120, "NOT IMPLEMENTED YET", 0xFFE0, 0x0000);
+    LCD_DrawString(20, 160, "PRESS ANY KEY", 0x07E0, 0x0000);
+    while (!KP_IsKeyPressed()) {
+        USC_Pause_us(50000);
+        RGU_RestartWDT();
+    }
+    KP_ReadKey();
+}
+
+static void Action_Pong(void)
+{
+    LCD_FillRect(0, 0, 240, 320, 0x0000);
+    LCD_DrawString(20, 100, "PONG", 0xFFFF, 0x0000);
+    LCD_DrawString(20, 120, "NOT IMPLEMENTED YET", 0xFFE0, 0x0000);
+    LCD_DrawString(20, 160, "PRESS ANY KEY", 0x07E0, 0x0000);
+    while (!KP_IsKeyPressed()) {
+        USC_Pause_us(50000);
+        RGU_RestartWDT();
+    }
+    KP_ReadKey();
+}
+
+static void Action_TicTacToe(void)
+{
+    LCD_FillRect(0, 0, 240, 320, 0x0000);
+    LCD_DrawString(20, 100, "TIC TAC TOE", 0xFFFF, 0x0000);
+    LCD_DrawString(20, 120, "NOT IMPLEMENTED YET", 0xFFE0, 0x0000);
+    LCD_DrawString(20, 160, "PRESS ANY KEY", 0x07E0, 0x0000);
+    while (!KP_IsKeyPressed()) {
+        USC_Pause_us(50000);
+        RGU_RestartWDT();
+    }
+    KP_ReadKey();
+}
+
+static void Action_MemoryGame(void)
+{
+    LCD_FillRect(0, 0, 240, 320, 0x0000);
+    LCD_DrawString(20, 100, "MEMORY GAME", 0xFFFF, 0x0000);
+    LCD_DrawString(20, 120, "NOT IMPLEMENTED YET", 0xFFE0, 0x0000);
+    LCD_DrawString(20, 160, "PRESS ANY KEY", 0x07E0, 0x0000);
+    while (!KP_IsKeyPressed()) {
+        USC_Pause_us(50000);
+        RGU_RestartWDT();
+    }
+    KP_ReadKey();
+}
+
+
+
+
+
+static void Action_BeepTest(void)
+{
+    LCD_FillRect(0, 0, 240, 320, 0x0000);
+    LCD_DrawString(20, 100, "AUDIO TEST", 0xFFFF, 0x0000);
+    LCD_DrawString(20, 120, "INITIALIZING AFE...", 0xFFE0, 0x0000);
+    
+    /* Initialize audio system */
+    AFE_initialize();
+    
+    LCD_DrawString(20, 140, "READY!", 0x07E0, 0x0000);
+    LCD_DrawString(20, 160, "1: Play Scale", 0xFFFF, 0x0000);
+    LCD_DrawString(20, 180, "2: Play Melody", 0xFFFF, 0x0000);
+    LCD_DrawString(20, 200, "3: Beep (Old)", 0xFFFF, 0x0000);
+    LCD_DrawString(20, 240, "BACK to exit", 0x7BEF, 0x0000);
+    
+    boolean exitBeep = false;
+    while (!exitBeep) {
+        if (KP_IsKeyPressed()) {
+            TKEY key = KP_ReadKey();
+            switch (key) {
+                case KEY_1: // Scale
+                    LCD_DrawString(20, 220, "Playing Scale...", 0x07E0, 0x0000);
+                    /* Play a scale (approximate values) */
+                    /* Lower value = Higher pitch */
+                    PlayTone(30, 200); // Do
+                    PlayTone(27, 200); // Re
+                    PlayTone(24, 200); // Mi
+                    PlayTone(22, 200); // Fa
+                    PlayTone(20, 200); // Sol
+                    PlayTone(18, 200); // La
+                    PlayTone(16, 200); // Si
+                    PlayTone(15, 200); // Do
+                    LCD_DrawString(20, 220, "Done!           ", 0xFFFF, 0x0000);
+                    break;
+                    
+                case KEY_2: // Melody (Twinkle Twinkle)
+                    LCD_DrawString(20, 220, "Playing Melody...", 0x07E0, 0x0000);
+                    /* Twinkle Twinkle Little Star */
+                    PlayTone(30, 300); PlayTone(30, 300); // Do Do
+                    PlayTone(20, 300); PlayTone(20, 300); // Sol Sol
+                    PlayTone(18, 300); PlayTone(18, 300); // La La
+                    PlayTone(20, 600);                    // Sol
+                    
+                    PlayTone(22, 300); PlayTone(22, 300); // Fa Fa
+                    PlayTone(24, 300); PlayTone(24, 300); // Mi Mi
+                    PlayTone(27, 300); PlayTone(27, 300); // Re Re
+                    PlayTone(30, 600);                    // Do
+                    LCD_DrawString(20, 220, "Done!            ", 0xFFFF, 0x0000);
+                    break;
+                    
+                case KEY_3: // Old Beep
+                    LCD_DrawString(20, 220, "Beeping...      ", 0x07E0, 0x0000);
+                    Beep();
+                    LCD_DrawString(20, 220, "Done!           ", 0xFFFF, 0x0000);
+                    break;
+                    
+                case KEY_BACK:
+                    exitBeep = true;
+                    break;
+                default:
+                    break;
+            }
+        }
+        USC_Pause_us(50000);
+        RGU_RestartWDT();
     }
     
     Menu_InvalidateCache();
