@@ -276,5 +276,6 @@ extern void MSDC_Init(TMSDC Index);
 extern boolean MSDC_SendCommand(TMSDC Index, uint32_t Cmd, uint32_t Arg, uint32_t *Resp);
 extern boolean MSDC_ReadData(TMSDC Index, void *Buffer, uint32_t Length);
 extern void MSDC_SetClock(TMSDC Index, uint32_t Frequency);
+extern void MSDC_SetBusWidth(TMSDC Index, uint32_t Width);
 
 #endif /* _MSDC_H_ */

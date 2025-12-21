@@ -46,5 +46,6 @@ extern void PMUBL_SetupValue(uint32_t Value);
 extern void PMUBL_TurnOn(boolean TurnOn);
 extern void PMUBL_RestartBacklightTimer(boolean UnlockGUI);
 extern TBLSTAGE PMUBL_GetBacklightStage(void);
+extern uint32_t PMUBL_GetValue(void);
 
 #endif /* _BACKLIGHT_H_ */

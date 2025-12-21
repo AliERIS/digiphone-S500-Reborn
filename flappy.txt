@@ -1,0 +1,121 @@
+
+/* Flappy Bird Clone */
+static void Action_FlappyBird(void)
+{
+    const int BIRD_X = 50;
+    const int GRAVITY = 1;
+    const int JUMP_STRENGTH = -6; // Negative Y is up
+    const int PIPE_SPEED = 3;
+    const int PIPE_WIDTH = 30;
+    const int PIPE_GAP = 90;
+    const int PIPE_INTERVAL = 140;
+    
+    int birdY = 160;
+    int birdVelocity = 0;
+    int score = 0;
+    boolean gameOver = false;
+    
+    /* Pipe structure */
+    typedef struct {
+        int x;
+        int gapY; // Top of the gap
+        boolean active;
+        boolean passed;
+    } Pipe;
+    
+    Pipe pipes[3]; // Keep 3 pipes in rotation
+    for(int i=0; i<3; i++) pipes[i].active = false;
+    
+    /* Initial Draw */
+    LCD_FillRect(0, 0, 240, 320, 0x87CE); // Sky Blue
+    LCD_DrawString(80, 100, "FLAPPY BIRD", 0xFFFF, 0x87CE);
+    LCD_DrawString(60, 140, "PRESS 5 TO JUMP", 0xFFFF, 0x87CE);
+    USC_Pause_us(1000000);
+    LCD_FillRect(0, 0, 240, 320, 0x87CE); // Clear
+    
+    int frameCount = 0;
+    
+    while (!gameOver) {
+        RGU_RestartWDT();
+        
+        /* Input Handling */
+        if (KP_IsKeyPressed()) {
+            TKEY key = KP_ReadKey();
+            if (key == KEY_BACK) return; // Exit game
+            if (key == KEY_5 || key == KEY_OK) {
+                birdVelocity = JUMP_STRENGTH;
+            }
+        }
+        
+        /* Physics */
+        birdVelocity += GRAVITY;
+        birdY += birdVelocity;
+        
+        /* Floor/Ceiling Collision */
+        if (birdY < 0) birdY = 0;
+        if (birdY > 310) gameOver = true;
+        
+        /* Pipe Management */
+        if (frameCount % 50 == 0) { // Spawn pipe
+            for(int i=0; i<3; i++) {
+                if (!pipes[i].active) {
+                    pipes[i].active = true;
+                    pipes[i].x = 240;
+                    pipes[i].gapY = 50 + (frameCount % 150); // Randomish gap
+                    pipes[i].passed = false;
+                    break;
+                }
+            }
+        }
+        frameCount++;
+        
+        /* Rendering - Clear Screen (Optimize later!) */
+        /* Simple optimization: Clear bird old pos? No, full redraw for now to avoid artifacts */
+        LCD_FillRect(0, 0, 240, 320, 0x87CE); 
+        
+        /* Draw Pipes & Collision */
+        for(int i=0; i<3; i++) {
+            if (pipes[i].active) {
+                pipes[i].x -= PIPE_SPEED;
+                
+                /* Draw Top Pipe */
+                LCD_FillRect(pipes[i].x, 0, PIPE_WIDTH, pipes[i].gapY, 0x07E0); // Green
+                
+                /* Draw Bottom Pipe */
+                LCD_FillRect(pipes[i].x, pipes[i].gapY + PIPE_GAP, PIPE_WIDTH, 320 - (pipes[i].gapY + PIPE_GAP), 0x07E0);
+                
+                /* Collision Check */
+                if (BIRD_X + 10 > pipes[i].x && BIRD_X < pipes[i].x + PIPE_WIDTH) {
+                    if (birdY < pipes[i].gapY || birdY + 10 > pipes[i].gapY + PIPE_GAP) {
+                        gameOver = true;
+                    }
+                }
+                
+                /* Score Update */
+                if (!pipes[i].passed && pipes[i].x < BIRD_X) {
+                    score++;
+                    pipes[i].passed = true;
+                    Beep(); // Point sound
+                }
+                
+                /* Deactivate off-screen pipes */
+                if (pipes[i].x < -PIPE_WIDTH) pipes[i].active = false;
+            }
+        }
+        
+        /* Draw Bird */
+        LCD_FillRect(BIRD_X, birdY, 10, 10, 0xFFE0); // Yellow Bird
+        
+        /* Draw Score */
+        char scoreBuf[10];
+        sprintf(scoreBuf, "%d", score);
+        LCD_DrawString(110, 20, scoreBuf, 0xFFFF, 0x87CE);
+        
+        USC_Pause_us(30000); // ~30 FPS
+    }
+    
+    /* Game Over Screen */
+    LCD_DrawString(80, 140, "GAME OVER", 0xF800, 0x87CE);
+    USC_Pause_us(2000000);
+    Menu_InvalidateCache();
+}

@@ -80,12 +80,14 @@
 #define BL_TurnOn(v)                        PMUBL_TurnOn(v)
 #define BL_RestartBacklightTimer(v)         PMUBL_RestartBacklightTimer(v)
 #define BL_GetBacklightStage()              PMUBL_GetBacklightStage()
+#define BL_GetValue()                       PMUBL_GetValue()
 #else
 #define BL_Initialize()
 #define BL_SetupValue(v)
 #define BL_TurnOn(v)
 #define BL_RestartBacklightTimer(v)
 #define BL_GetBacklightStage()              false
+#define BL_GetValue()                       0
 #endif
 
 /* USB interface driver */

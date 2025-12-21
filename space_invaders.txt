@@ -1,0 +1,238 @@
+
+/* Space Invaders (RPG Edition) */
+static void Action_SpaceInvaders(void)
+{
+    /* Game Constants */
+    const int PLAYER_Y = 280;
+    const int PLAYER_WIDTH = 15;
+    const int PLAYER_HEIGHT = 10;
+    const int ENEMY_ROWS = 3;
+    const int ENEMY_COLS = 6;
+    const int ENEMY_WIDTH = 12;
+    const int ENEMY_HEIGHT = 8;
+    const int MAX_BULLETS = 10;
+    
+    /* Player Stats (Upgradable) */
+    int playerSpeed = 4;
+    int bulletSpeed = 5;
+    int maxHealth = 3;
+    int damage = 1;
+    int money = 0;
+    
+    int currentHealth = maxHealth;
+    int level = 1;
+    boolean gameOver = false;
+    
+    /* Game Objects */
+    typedef struct {
+        int x, y;
+        boolean active;
+    } Bullet;
+    
+    typedef struct {
+        int x, y;
+        boolean active;
+        int type;
+    } Enemy;
+    
+    Bullet bullets[MAX_BULLETS];
+    Enemy enemies[ENEMY_ROWS * ENEMY_COLS];
+    
+    while (!gameOver) {
+        /* Level Init */
+        int playerX = 110;
+        int enemySpeed = 1 + (level / 2);
+        int enemyDir = 1;
+        int activeEnemies = ENEMY_ROWS * ENEMY_COLS;
+        
+        for(int i=0; i<MAX_BULLETS; i++) bullets[i].active = false;
+        
+        for(int r=0; r<ENEMY_ROWS; r++) {
+            for(int c=0; c<ENEMY_COLS; c++) {
+                int idx = r * ENEMY_COLS + c;
+                enemies[idx].active = true;
+                enemies[idx].x = 20 + c * 30;
+                enemies[idx].y = 40 + r * 20;
+            }
+        }
+        
+        /* Rendering State */
+        int oldPlayerX = playerX;
+        int oldBulletX[MAX_BULLETS], oldBulletY[MAX_BULLETS];
+        int oldEnemyX[ENEMY_ROWS * ENEMY_COLS], oldEnemyY[ENEMY_ROWS * ENEMY_COLS];
+        
+        /* Clear Screen */
+        LCD_FillRect(0, 0, 240, 320, 0x0000);
+        
+        char levelBuf[20];
+        sprintf(levelBuf, "LEVEL %d", level);
+        LCD_DrawString(90, 150, levelBuf, 0xFFFF, 0x0000);
+        USC_Pause_us(1000000);
+        LCD_FillRect(0, 140, 240, 40, 0x0000);
+        
+        /* Draw HUD */
+        LCD_FillRect(0, 300, 240, 20, 0x18E3);
+        
+        boolean levelComplete = false;
+        
+        while (!gameOver && !levelComplete) {
+            RGU_RestartWDT();
+            
+            /* Input */
+            if (KP_IsKeyPressed()) {
+                TKEY key = KP_ReadKey();
+                if (key == KEY_BACK) { gameOver = true; break; }
+                if (key == KEY_4 || key == KEY_LEFT) playerX -= playerSpeed;
+                if (key == KEY_6 || key == KEY_RIGHT) playerX += playerSpeed;
+                if (key == KEY_5 || key == KEY_OK) {
+                    /* Fire Bullet */
+                    for(int i=0; i<MAX_BULLETS; i++) {
+                        if (!bullets[i].active) {
+                            bullets[i].active = true;
+                            bullets[i].x = playerX + PLAYER_WIDTH/2;
+                            bullets[i].y = PLAYER_Y - 5;
+                            oldBulletX[i] = bullets[i].x; // Init old pos
+                            oldBulletY[i] = bullets[i].y;
+                            Beep();
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            if (playerX < 0) playerX = 0;
+            if (playerX > 240 - PLAYER_WIDTH) playerX = 240 - PLAYER_WIDTH;
+            
+            /* Erase Old Objects */
+            LCD_FillRect(oldPlayerX, PLAYER_Y, PLAYER_WIDTH, PLAYER_HEIGHT, 0x0000);
+            
+            for(int i=0; i<MAX_BULLETS; i++) {
+                if (bullets[i].active) {
+                     LCD_FillRect(oldBulletX[i], oldBulletY[i], 2, 6, 0x0000);
+                }
+            }
+            
+            for(int i=0; i<ENEMY_ROWS*ENEMY_COLS; i++) {
+                if (enemies[i].active) {
+                    LCD_FillRect(oldEnemyX[i], oldEnemyY[i], ENEMY_WIDTH, ENEMY_HEIGHT, 0x0000);
+                }
+            }
+            
+            /* Update Bullets */
+            for(int i=0; i<MAX_BULLETS; i++) {
+                if (bullets[i].active) {
+                    bullets[i].y -= bulletSpeed;
+                    if (bullets[i].y < 0) bullets[i].active = false;
+                    
+                    /* Collision with Enemies */
+                    for(int e=0; e<ENEMY_ROWS*ENEMY_COLS; e++) {
+                        if (enemies[e].active && bullets[i].active) {
+                            if (bullets[i].x >= enemies[e].x && bullets[i].x <= enemies[e].x + ENEMY_WIDTH &&
+                                bullets[i].y >= enemies[e].y && bullets[i].y <= enemies[e].y + ENEMY_HEIGHT) {
+                                    enemies[e].active = false;
+                                    bullets[i].active = false;
+                                    activeEnemies--;
+                                    money += 10;
+                                    if (activeEnemies == 0) levelComplete = true;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            /* Update Enemies */
+            boolean hitWall = false;
+            for(int i=0; i<ENEMY_ROWS*ENEMY_COLS; i++) {
+                if (enemies[i].active) {
+                    enemies[i].x += enemySpeed * enemyDir;
+                    if (enemies[i].x <= 0 || enemies[i].x >= 240 - ENEMY_WIDTH) hitWall = true;
+                }
+            }
+            
+            if (hitWall) {
+                enemyDir = -enemyDir;
+                for(int i=0; i<ENEMY_ROWS*ENEMY_COLS; i++) {
+                    if (enemies[i].active) enemies[i].y += 5;
+                }
+            }
+            
+            /* Draw New Objects */
+            LCD_FillRect(playerX, PLAYER_Y, PLAYER_WIDTH, PLAYER_HEIGHT, 0x07E0); // Player
+            
+            for(int i=0; i<MAX_BULLETS; i++) {
+                if (bullets[i].active) {
+                    LCD_FillRect(bullets[i].x, bullets[i].y, 2, 6, 0xFFE0); // Bullet
+                    oldBulletX[i] = bullets[i].x;
+                    oldBulletY[i] = bullets[i].y;
+                }
+            }
+            
+            for(int i=0; i<ENEMY_ROWS*ENEMY_COLS; i++) {
+                if (enemies[i].active) {
+                    LCD_FillRect(enemies[i].x, enemies[i].y, ENEMY_WIDTH, ENEMY_HEIGHT, 0xF800); // Enemy
+                    oldEnemyX[i] = enemies[i].x;
+                    oldEnemyY[i] = enemies[i].y;
+                    
+                    if (enemies[i].y > PLAYER_Y) gameOver = true; // Invasion successful
+                }
+            }
+            
+            oldPlayerX = playerX;
+            
+            /* Draw HUD Stats */
+            char hudBuf[30];
+            sprintf(hudBuf, "HP:%d  $: %d", currentHealth, money);
+            LCD_DrawString(10, 302, hudBuf, 0xFFFF, 0x18E3);
+            
+            USC_Pause_us(30000);
+        }
+        
+        if (levelComplete) {
+            /* Upgrade Menu */
+            boolean shopping = true;
+            LCD_FillRect(0, 0, 240, 320, 0x0000);
+            LCD_DrawString(60, 40, "LEVEL COMPLETE!", 0x07E0, 0x0000);
+            
+            while(shopping) {
+                RGU_RestartWDT();
+                
+                LCD_FillRect(0, 80, 240, 200, 0x0000); // Clear menu area
+                
+                char moneyBuf[20];
+                sprintf(moneyBuf, "MONEY: $%d", money);
+                LCD_DrawString(80, 80, moneyBuf, 0xFFE0, 0x0000);
+                
+                LCD_DrawString(20, 120, "1. DMG UP ($100)", 0xFFFF, 0x0000);
+                LCD_DrawString(20, 150, "2. SPD UP ($50)", 0xFFFF, 0x0000);
+                LCD_DrawString(20, 180, "3. HEAL ($20)", 0xFFFF, 0x0000);
+                LCD_DrawString(20, 240, "PRESS OK TO NEXT", 0x07E0, 0x0000);
+                
+                while(!KP_IsKeyPressed()) { USC_Pause_us(50000); RGU_RestartWDT(); }
+                TKEY key = KP_ReadKey();
+                
+                if (key == KEY_1 && money >= 100) {
+                    damage++; money -= 100;
+                    LCD_DrawString(160, 120, "OK!", 0x07E0, 0x0000);
+                }
+                else if (key == KEY_2 && money >= 50) {
+                    bulletSpeed += 2; money -= 50;
+                    LCD_DrawString(160, 150, "OK!", 0x07E0, 0x0000);
+                }
+                else if (key == KEY_3 && money >= 20 && currentHealth < maxHealth) {
+                    currentHealth++; money -= 20;
+                    LCD_DrawString(160, 180, "OK!", 0x07E0, 0x0000);
+                }
+                else if (key == KEY_OK || key == KEY_5) {
+                    shopping = false;
+                }
+                
+                USC_Pause_us(200000);
+            }
+            level++;
+        }
+    }
+    
+    LCD_DrawString(80, 150, "GAME OVER", 0xF800, 0x0000);
+    USC_Pause_us(3000000);
+    Menu_InvalidateCache();
+}

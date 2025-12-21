@@ -12,6 +12,9 @@
 
 #include "pctl.h"
 
+/* Backlight wake function */
+extern void KeepBacklightOn(void);
+
 /* Key mapping table */
 static const TKEY KeyMap[] = {
     KEY_NONE,   // 0x00
@@ -192,6 +195,7 @@ boolean KP_IsKeyPressed(void)
     boolean pressed = false;
     if (!GPIO_DATAIN(KCOL0) || !GPIO_DATAIN(KCOL1) || !GPIO_DATAIN(KCOL2) || !GPIO_DATAIN(KCOL3) || !GPIO_DATAIN(KCOL4)) {
         pressed = true;
+        KeepBacklightOn();  /* Wake backlight on any key press */
     }
 
     /* Restore Rows High */
@@ -255,6 +259,7 @@ TKEY KP_ReadKey(void)
     /* Match against known signatures */
     for (int i = 0; i < sizeof(signatures)/sizeof(signatures[0]); i++) {
         if (matrix == signatures[i].signature) {
+            KeepBacklightOn();  /* Wake backlight on any key press */
             return signatures[i].key;
         }
     }

@@ -1,0 +1,174 @@
+
+/* Terminal / Code Editor with Phone Input */
+static void Action_Terminal(void)
+{
+    /* T9-style character mapping */
+    const char* keyChars[] = {
+        " 0",           // KEY_0
+        ".,;:!?(){}[]<>+-*/=&|^~#$@\\\"'`1", // KEY_1 - symbols
+        "abc2ABC",      // KEY_2
+        "def3DEF",      // KEY_3
+        "ghi4GHI",      // KEY_4
+        "jkl5JKL",      // KEY_5
+        "mno6MNO",      // KEY_6
+        "pqrs7PQRS",    // KEY_7
+        "tuv8TUV",      // KEY_8
+        "wxyz9WXYZ"     // KEY_9
+    };
+    
+    #define MAX_CODE_LEN 500
+    #define VISIBLE_LINES 12
+    #define CHARS_PER_LINE 30
+    
+    char code[MAX_CODE_LEN];
+    int codeLen = 0;
+    int cursorPos = 0;
+    int scrollLine = 0;
+    
+    int lastKey = -1;
+    int charIndex = 0;
+    uint32_t lastKeyTime = 0;
+    
+    code[0] = '\0';
+    
+    LCD_FillRect(0, 0, 240, 320, 0x0000);
+    LCD_DrawString(60, 5, "TERMINAL", 0x07E0, 0x0000);
+    LCD_DrawString(5, 290, "1:Sym 0:Spc #:Enter *:Del", 0x7BEF, 0x0000);
+    LCD_DrawString(5, 305, "2-9:T9 OK:Run BACK:Exit", 0x7BEF, 0x0000);
+    
+    while(1) {
+        RGU_RestartWDT();
+        KeepBacklightOn();
+        
+        /* Draw code area */
+        LCD_FillRect(0, 20, 240, 260, 0x0841); // Dark blue bg
+        
+        /* Draw code with cursor */
+        int lineY = 25;
+        int lineX = 5;
+        int currentLine = 0;
+        int charInLine = 0;
+        
+        for(int i=0; i<=codeLen && lineY < 270; i++) {
+            char c = (i < codeLen) ? code[i] : '\0';
+            
+            /* Draw cursor */
+            if (i == cursorPos) {
+                LCD_FillRect(lineX, lineY, 6, 14, 0x07E0); // Green cursor
+            }
+            
+            if (c == '\n' || charInLine >= CHARS_PER_LINE) {
+                lineY += 16;
+                lineX = 5;
+                charInLine = 0;
+                currentLine++;
+                if (c == '\n') continue;
+            }
+            
+            if (c != '\0' && c != '\n') {
+                char buf[2] = {c, 0};
+                uint16_t fg = 0xFFFF;
+                
+                /* Syntax highlighting */
+                if (c >= '0' && c <= '9') fg = 0xFFE0; // Yellow for numbers
+                else if (c == '(' || c == ')' || c == '{' || c == '}' || c == '[' || c == ']') fg = 0xF81F; // Magenta for brackets
+                else if (c == ';' || c == ':') fg = 0x07FF; // Cyan for punctuation
+                
+                LCD_DrawString(lineX, lineY, buf, fg, 0x0841);
+                lineX += 6;
+                charInLine++;
+            }
+        }
+        
+        /* Input handling */
+        if (KP_IsKeyPressed()) {
+            TKEY key = KP_ReadKey();
+            uint32_t now = USC_GetCurrentTicks() / 1000;
+            
+            if (key == KEY_BACK) break;
+            
+            if (key == KEY_OK) {
+                /* "Run" - just show message */
+                LCD_FillRect(50, 130, 140, 40, 0x001F);
+                LCD_DrawString(60, 145, "Code Saved!", 0xFFFF, 0x001F);
+                USC_Pause_us(1000000);
+            }
+            else if (key == KEY_STAR) {
+                /* Delete character */
+                if (cursorPos > 0 && codeLen > 0) {
+                    for(int i=cursorPos-1; i<codeLen; i++) {
+                        code[i] = code[i+1];
+                    }
+                    codeLen--;
+                    cursorPos--;
+                }
+                lastKey = -1;
+            }
+            else if (key == KEY_HASH) {
+                /* Enter/Newline */
+                if (codeLen < MAX_CODE_LEN - 1) {
+                    for(int i=codeLen; i>=cursorPos; i--) {
+                        code[i+1] = code[i];
+                    }
+                    code[cursorPos] = '\n';
+                    codeLen++;
+                    cursorPos++;
+                }
+                lastKey = -1;
+            }
+            else if (key == KEY_LEFT && cursorPos > 0) {
+                cursorPos--;
+                lastKey = -1;
+            }
+            else if (key == KEY_RIGHT && cursorPos < codeLen) {
+                cursorPos++;
+                lastKey = -1;
+            }
+            else {
+                /* T9-style input */
+                int keyNum = -1;
+                if (key == KEY_0) keyNum = 0;
+                else if (key == KEY_1) keyNum = 1;
+                else if (key == KEY_2) keyNum = 2;
+                else if (key == KEY_3) keyNum = 3;
+                else if (key == KEY_4) keyNum = 4;
+                else if (key == KEY_5) keyNum = 5;
+                else if (key == KEY_6) keyNum = 6;
+                else if (key == KEY_7) keyNum = 7;
+                else if (key == KEY_8) keyNum = 8;
+                else if (key == KEY_9) keyNum = 9;
+                
+                if (keyNum >= 0 && codeLen < MAX_CODE_LEN - 1) {
+                    const char* chars = keyChars[keyNum];
+                    int numChars = 0;
+                    while(chars[numChars]) numChars++;
+                    
+                    if (keyNum == lastKey && (now - lastKeyTime) < 1000) {
+                        /* Same key, cycle character */
+                        charIndex = (charIndex + 1) % numChars;
+                        code[cursorPos - 1] = chars[charIndex];
+                    }
+                    else {
+                        /* New key, insert character */
+                        for(int i=codeLen; i>=cursorPos; i--) {
+                            code[i+1] = code[i];
+                        }
+                        charIndex = 0;
+                        code[cursorPos] = chars[charIndex];
+                        codeLen++;
+                        cursorPos++;
+                    }
+                    
+                    lastKey = keyNum;
+                    lastKeyTime = now;
+                }
+            }
+            
+            USC_Pause_us(150000); // Debounce
+        }
+        
+        USC_Pause_us(30000);
+    }
+    
+    Menu_InvalidateCache();
+}

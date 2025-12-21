@@ -55,11 +55,21 @@ boolean MSDC_IsMultiLineSupported(TMSDC Index)
 #include "pmu.h"
 #include "gpio.h"
 #include "lcdif.h"
+#include "pctl.h"
 
 void MSDC_Init(TMSDC Index)
 {
     TMSDCCONTEXT *ctx = MSDC_GetModuleContext(Index);
     if (!ctx) return;
+
+    LCD_DrawString(20, 90, "MSDC: PCTL ON", 0xFFFF, 0x0000);
+
+    /* CRITICAL: Enable MSDC clock domain BEFORE any register access! */
+    PCTL_PowerUp(PD_MSDC);
+    if (Index == MSDC_ITF1) {
+        PCTL_PowerUp(PD_MSDC2);  /* MSDC2 for second interface */
+    }
+    USC_Pause_us(5000); /* Wait for clock domain to stabilize */
 
     LCD_DrawString(20, 100, "MSDC: PMU SET", 0xFFFF, 0x0000);
 
@@ -83,6 +93,14 @@ void MSDC_Init(TMSDC Index)
         LCD_DrawString(20, 180, "SET GPIO33", 0xFFFF, 0x0000);
         /* DAT0: GPIO33 Mode 1 (MCDA0) */
         GPIO_Setup(GPIO33, GPMODE(1) | GPDO | GPDIEN | GPPULLEN | GPPUP | GPSMT);
+
+        LCD_DrawString(20, 180, "SET GPIO34-36", 0xFFFF, 0x0000);
+        /* DAT1: GPIO34 Mode 1 (MCDA1) */
+        GPIO_Setup(GPIO34, GPMODE(1) | GPDO | GPDIEN | GPPULLEN | GPPUP | GPSMT);
+        /* DAT2: GPIO35 Mode 1 (MCDA2) */
+        GPIO_Setup(GPIO35, GPMODE(1) | GPDO | GPDIEN | GPPULLEN | GPPUP | GPSMT);
+        /* DAT3: GPIO36 Mode 1 (MCDA3) */
+        GPIO_Setup(GPIO36, GPMODE(1) | GPDO | GPDIEN | GPPULLEN | GPPUP | GPSMT);
     }
     /* Configure GPIOs for MSDC1 (SD Card - Alternative) */
     else if (Index == MSDC_ITF1) {
@@ -125,9 +143,18 @@ void MSDC_Init(TMSDC Index)
 
     LCD_DrawString(20, 140, "MSDC: ENABLE", 0xFFFF, 0x0000);
 
-    /* Enable Controller FIRST (required for clock init to work!) */
-    ctx->MSDC->MSDC_CFG |= MSDC_EN;
+    /* CRITICAL: Must clear standby AND enable controller
+     * Register value shows STDBY=1, EN=0 which is invalid state
+     * Force clear of STDBY bit and set EN bit
+     */
+    ctx->MSDC->MSDC_CFG &= ~MSDC_STDBY;  /* Clear standby first */
+    ctx->MSDC->MSDC_CFG |= MSDC_EN;       /* Then enable */
     USC_Pause_us(10000); // Wait for controller enable
+    
+    /* Verify enable took effect */
+    if (!(ctx->MSDC->MSDC_CFG & MSDC_EN)) {
+        LCD_DrawString(20, 145, "EN FAIL!", 0xF800, 0x0000);
+    }
 
     LCD_DrawString(20, 150, "MSDC: CLOCK", 0xFFFF, 0x0000);
 
@@ -219,6 +246,18 @@ void MSDC_SetClock(TMSDC Index, uint32_t Frequency)
     }
 }
 
+void MSDC_SetBusWidth(TMSDC Index, uint32_t Width)
+{
+    TMSDCCONTEXT *ctx = MSDC_GetModuleContext(Index);
+    if (!ctx) return;
+    
+    if (Width == 4) {
+        ctx->MSDC->SDC_CFG |= SDC_MDLEN; // 4-bit mode
+    } else {
+        ctx->MSDC->SDC_CFG &= ~SDC_MDLEN; // 1-bit mode
+    }
+}
+
 boolean MSDC_SendCommand(TMSDC Index, uint32_t Cmd, uint32_t Arg, uint32_t *Resp)
 {
     TMSDCCONTEXT *ctx = MSDC_GetModuleContext(Index);
@@ -257,7 +296,7 @@ boolean MSDC_SendCommand(TMSDC Index, uint32_t Cmd, uint32_t Arg, uint32_t *Resp
     }
 
     /* Wait for response completion (for commands with response) */
-    int timeout = 5000000; // 5 second timeout (was 500ms - trying longer for slow cards)
+    int timeout = 10000000; // 10 second timeout (increased for robustness)
     while (!(ctx->MSDC->SDC_CMDSTA & (SDC_CMDRDY | SDC_CMDTO | SDC_RSPCRCERR)) && --timeout) {
         /* Restart watchdog periodically to prevent device reset */
         if ((timeout % 10000) == 0) {

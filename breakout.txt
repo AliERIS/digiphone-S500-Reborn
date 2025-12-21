@@ -1,0 +1,144 @@
+
+/* Breakout Game */
+static void Action_Breakout(void)
+{
+    const int PADDLE_WIDTH = 50;
+    const int PADDLE_HEIGHT = 6;
+    const int BALL_SIZE = 6;
+    const int BRICK_ROWS = 5;
+    const int BRICK_COLS = 6;
+    const int BRICK_HEIGHT = 15;
+    const int BRICK_WIDTH = 240 / BRICK_COLS;
+    
+    int paddleX = (240 - PADDLE_WIDTH) / 2;
+    int ballX = 120;
+    int ballY = 200;
+    int ballVX = 3;
+    int ballVY = -3;
+    int score = 0;
+    boolean gameOver = false;
+    boolean victory = false;
+    
+    /* Bricks State (1 = active, 0 = broken) */
+    uint8_t bricks[BRICK_ROWS][BRICK_COLS];
+    for(int r=0; r<BRICK_ROWS; r++)
+        for(int c=0; c<BRICK_COLS; c++)
+            bricks[r][c] = 1;
+            
+    int activeBricks = BRICK_ROWS * BRICK_COLS;
+    
+    /* Rendering State */
+    int oldPaddleX = paddleX;
+    int oldBallX = ballX;
+    int oldBallY = ballY;
+    
+    /* Initial Draw */
+    LCD_FillRect(0, 0, 240, 320, 0x0000); // Black Background
+    
+    /* Draw Bricks */
+    for(int r=0; r<BRICK_ROWS; r++) {
+        uint16_t color = 0;
+        switch(r) {
+            case 0: color = 0xF800; break; // Red
+            case 1: color = 0xFD20; break; // Orange
+            case 2: color = 0xFFE0; break; // Yellow
+            case 3: color = 0x07E0; break; // Green
+            case 4: color = 0x001F; break; // Blue
+        }
+        for(int c=0; c<BRICK_COLS; c++) {
+            LCD_FillRect(c * BRICK_WIDTH + 1, r * BRICK_HEIGHT + 25, BRICK_WIDTH - 2, BRICK_HEIGHT - 2, color);
+        }
+    }
+    
+    LCD_DrawString(80, 150, "READY?", 0xFFFF, 0x0000);
+    USC_Pause_us(1000000);
+    LCD_FillRect(0, 140, 240, 40, 0x0000); // Clear text
+    
+    while (!gameOver && !victory) {
+        RGU_RestartWDT();
+        
+        /* Input */
+        if (KP_IsKeyPressed()) {
+            TKEY key = KP_ReadKey();
+            if (key == KEY_BACK) return;
+            if (key == KEY_4 || key == KEY_LEFT) paddleX -= 15;
+            if (key == KEY_6 || key == KEY_RIGHT) paddleX += 15;
+        }
+        
+        /* Clamp Paddle */
+        if (paddleX < 0) paddleX = 0;
+        if (paddleX > 240 - PADDLE_WIDTH) paddleX = 240 - PADDLE_WIDTH;
+        
+        /* Erase Old Objects */
+        LCD_FillRect(oldPaddleX, 300, PADDLE_WIDTH, PADDLE_HEIGHT, 0x0000);
+        LCD_FillRect(oldBallX, oldBallY, BALL_SIZE, BALL_SIZE, 0x0000);
+        
+        /* Physics */
+        ballX += ballVX;
+        ballY += ballVY;
+        
+        /* Wall Collisions */
+        if (ballX <= 0 || ballX >= 240 - BALL_SIZE) ballVX = -ballVX;
+        if (ballY <= 0) ballVY = -ballVY;
+        
+        /* Paddle Collision */
+        if (ballY + BALL_SIZE >= 300 && ballY < 300 + PADDLE_HEIGHT) {
+            if (ballX + BALL_SIZE >= paddleX && ballX <= paddleX + PADDLE_WIDTH) {
+                ballVY = -ballVY;
+                /* Add some English based on hit position */
+                int center = paddleX + PADDLE_WIDTH / 2;
+                int hit = (ballX + BALL_SIZE/2) - center;
+                ballVX = hit / 4;
+                if (ballVX == 0) ballVX = (hit > 0) ? 1 : -1;
+                
+                Beep(); // Bounce sound
+            }
+        }
+        
+        /* Bottom Collision (Death) */
+        if (ballY > 320) gameOver = true;
+        
+        /* Brick Collision */
+        if (ballY < 25 + BRICK_ROWS * BRICK_HEIGHT) {
+            int r = (ballY - 25) / BRICK_HEIGHT;
+            int c = ballX / BRICK_WIDTH;
+            
+            if (r >= 0 && r < BRICK_ROWS && c >= 0 && c < BRICK_COLS) {
+                if (bricks[r][c]) {
+                    bricks[r][c] = 0;
+                    ballVY = -ballVY;
+                    score += 10;
+                    activeBricks--;
+                    
+                    /* Erase Brick */
+                    LCD_FillRect(c * BRICK_WIDTH + 1, r * BRICK_HEIGHT + 25, BRICK_WIDTH - 2, BRICK_HEIGHT - 2, 0x0000);
+                    
+                    if (activeBricks == 0) victory = true;
+                }
+            }
+        }
+        
+        /* Draw New Objects */
+        LCD_FillRect(paddleX, 300, PADDLE_WIDTH, PADDLE_HEIGHT, 0x07E0); // Green Paddle
+        LCD_FillRect(ballX, ballY, BALL_SIZE, BALL_SIZE, 0xFFFF); // White Ball
+        
+        /* Store Old Positions */
+        oldPaddleX = paddleX;
+        oldBallX = ballX;
+        oldBallY = ballY;
+        
+        USC_Pause_us(30000);
+    }
+    
+    if (victory) {
+        LCD_DrawString(80, 150, "VICTORY!", 0x07E0, 0x0000);
+    } else {
+        LCD_DrawString(80, 150, "GAME OVER", 0xF800, 0x0000);
+    }
+    char buf[20];
+    sprintf(buf, "SCORE: %d", score);
+    LCD_DrawString(80, 170, buf, 0xFFFF, 0x0000);
+    
+    USC_Pause_us(3000000);
+    Menu_InvalidateCache();
+}

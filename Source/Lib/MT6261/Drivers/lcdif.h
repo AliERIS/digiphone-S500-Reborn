@@ -20,6 +20,7 @@
 #define _LCDIF_H_
 
 #include "gditypes.h"
+#include "dlist.h"
 
 #define MAX_LCDQUEUE_SIZE           128
 
@@ -326,5 +327,11 @@ extern boolean LCDIF_SetScreenPosition(TRECT Position, boolean UpdateScreen);
 extern boolean LCDIF_IsLayerInitialized(TVLINDEX Layer);
 extern void LCDIF_UpdateRectangle(TRECT Rct);
 extern void LCDIF_UpdateRectangleBlocked(pRECT Rct);
+
+/* High-level drawing functions */
+extern void LCD_FillRect(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16_t color);
+extern void LCD_DrawString(uint16_t x, uint16_t y, const char *s, uint16_t color, uint16_t bgcolor);
+extern void LCD_DrawPixel(uint16_t x, uint16_t y, uint16_t color);
+extern void LCD_DrawLine(uint16_t x0, uint16_t y0, uint16_t x1, uint16_t y1, uint16_t color);
 
 #endif /* _LCDIF_H_ */

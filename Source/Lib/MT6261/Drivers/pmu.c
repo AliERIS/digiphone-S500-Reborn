@@ -77,6 +77,11 @@ static boolean  FirstMeasurememnt;
 static uint16_t MathVBatArray[BATPARAMFILTERSIZE];
 static uint16_t MathISenseArray[BATPARAMFILTERSIZE];
 
+/* Forward Declarations to fix implicit declaration errors */
+boolean PMU_IsChargerConnected(void);
+void PMU_SetISINKOutput(ISINKCHNL Channel, boolean Enable);
+void PMU_ChargerTimerHandler(pTIMER Timer);
+
 static int8_t PMU_GetChargingParams(uint16_t TestValue)
 {
     int8_t i = sizeof(BatCurrentLimits) / sizeof(BatCurrentLimits[0]) - 1;
@@ -193,7 +198,7 @@ static void PMU_MeasureChargeParams(void)
     }
 }
 
-static void PMU_ChargerTimerHandler(pTIMER Timer)
+void PMU_ChargerTimerHandler(pTIMER Timer)
 {
     boolean ChargerState = PMU_IsChargerConnected();
 
@@ -251,6 +256,11 @@ static void PMU_ChargerTimerHandler(pTIMER Timer)
         }
         else if (ChargeOnDebounce == 0) BatteryCharging = false;
     }
+}
+
+void PMU_UpdateStatus(void)
+{
+    PMU_ChargerTimerHandler(NULL);
 }
 
 static void PMU_InterruptHandler(void)

@@ -39,8 +39,12 @@ void Menu_Initialize(void);
 void Menu_Render(Menu *menu);
 void Menu_NavigateUp(Menu *menu);
 void Menu_NavigateDown(Menu *menu);
+void Menu_NavigateLeft(Menu *menu);
+void Menu_NavigateRight(Menu *menu);
 Menu* Menu_Select(Menu *menu);
 Menu* Menu_Back(Menu *menu);
 Menu* Menu_GetRoot(void);
+void Menu_InvalidateCache(void);
+int ShowOptionsMenu(Menu *menu);
 
 #endif /* _MENU_H_ */

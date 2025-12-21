@@ -108,6 +108,10 @@
 		<Unit filename="Source\Application\boot_logo.h">
 			<Option target="SYSTEM" />
 		</Unit>
+		<Unit filename="Source\Application\demo_3d.c">
+			<Option compilerVar="CC" />
+			<Option target="SYSTEM" />
+		</Unit>
 		<Unit filename="Source\Application\Drivers\appdrivers.h">
 			<Option target="SYSTEM" />
 		</Unit>
@@ -116,6 +120,13 @@
 			<Option target="SYSTEM" />
 		</Unit>
 		<Unit filename="Source\Application\Drivers\backlight.h">
+			<Option target="SYSTEM" />
+		</Unit>
+		<Unit filename="Source\Application\Drivers\bluetooth.c">
+			<Option compilerVar="CC" />
+			<Option target="SYSTEM" />
+		</Unit>
+		<Unit filename="Source\Application\Drivers\bluetooth.h">
 			<Option target="SYSTEM" />
 		</Unit>
 		<Unit filename="Source\Application\Drivers\dflib.c">
@@ -561,12 +572,12 @@
 		<Extensions>
 			<code_completion />
 			<debugger>
-				<target_debugging_settings target="BOOTLOADER" active_interface="Generic">
+				<target_debugging_settings target="SYSTEM" active_interface="Generic">
 					<debug_interface interface_id="Generic" ip_address="" ip_port="" path="" executable="" description="" dont_start_server="false" backoff_time="" options="0" reg_filter="0" active_family="All" gdb_before_conn="" gdb_after_conn="">
 						<family_options family_id="All" />
 					</debug_interface>
 				</target_debugging_settings>
-				<target_debugging_settings target="SYSTEM" active_interface="Generic">
+				<target_debugging_settings target="BOOTLOADER" active_interface="Generic">
 					<debug_interface interface_id="Generic" ip_address="" ip_port="" path="" executable="" description="" dont_start_server="false" backoff_time="" options="0" reg_filter="0" active_family="All" gdb_before_conn="" gdb_after_conn="">
 						<family_options family_id="All" />
 					</debug_interface>

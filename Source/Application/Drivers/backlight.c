@@ -141,3 +141,8 @@ TBLSTAGE PMUBL_GetBacklightStage(void)
 {
     return BLState.Stage;
 }
+
+uint32_t PMUBL_GetValue(void)
+{
+    return BLState.Value;
+}

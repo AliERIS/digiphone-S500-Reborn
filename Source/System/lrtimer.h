@@ -27,6 +27,8 @@ typedef enum tag_MRFLAGS
     TF_DIRECT     = (1 << 2)
 } TMRFLAGS;
 
+extern pDLIST TimersList;
+
 typedef struct tag_TIMER *pTIMER;
 typedef struct tag_TIMER
 {

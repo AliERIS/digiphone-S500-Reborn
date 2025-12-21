@@ -1,0 +1,148 @@
+
+/* Text-Based Dungeon Crawler */
+static void Action_Dungeon(void)
+{
+    /* Map size: 20x16 characters */
+    #define MAP_W 20
+    #define MAP_H 16
+    #define CHAR_W 6
+    #define CHAR_H 8
+    
+    /* Map: # = wall, . = floor, $ = coin, E = enemy, X = exit */
+    char map[MAP_H][MAP_W + 1] = {
+        "####################",
+        "#@.....#....$.....E#",
+        "#.###..#.####..###.#",
+        "#...#..#....#....#.#",
+        "#.#.#..####.####.#.#",
+        "#.#......#.......#.#",
+        "#.######.#.#######.#",
+        "#......#.#.#.....$.#",
+        "#.####.#.#.#.#####.#",
+        "#.$..#...#...#...#.#",
+        "#.##.#####.###.#.#.#",
+        "#.#..........#E#...#",
+        "#.#.########.#.###.#",
+        "#...#......#.#.$...#",
+        "#E..#...$..#.....X.#",
+        "####################"
+    };
+    
+    int playerX = 1, playerY = 1;
+    int score = 0;
+    int health = 3;
+    boolean gameOver = false;
+    boolean victory = false;
+    
+    /* Find player start position */
+    for(int y=0; y<MAP_H; y++) {
+        for(int x=0; x<MAP_W; x++) {
+            if (map[y][x] == '@') {
+                playerX = x;
+                playerY = y;
+                map[y][x] = '.';
+            }
+        }
+    }
+    
+    /* Draw initial map */
+    LCD_FillRect(0, 0, 240, 320, 0x0000);
+    
+    /* Draw HUD */
+    LCD_DrawString(5, 2, "DUNGEON EXPLORER", 0xFFE0, 0x0000);
+    
+    /* Draw map */
+    for(int y=0; y<MAP_H; y++) {
+        for(int x=0; x<MAP_W; x++) {
+            char c = map[y][x];
+            uint16_t color = 0x7BEF; // Gray default
+            
+            switch(c) {
+                case '#': color = 0x4208; break; // Dark gray wall
+                case '.': color = 0x2104; break; // Darker floor
+                case '$': color = 0xFFE0; break; // Yellow coin
+                case 'E': color = 0xF800; break; // Red enemy
+                case 'X': color = 0x07E0; break; // Green exit
+            }
+            
+            char buf[2] = {c, 0};
+            LCD_DrawString(x * CHAR_W + 60, y * CHAR_H + 60, buf, color, 0x0000);
+        }
+    }
+    
+    /* Draw player */
+    LCD_DrawString(playerX * CHAR_W + 60, playerY * CHAR_H + 60, "@", 0x07FF, 0x0000);
+    
+    while (!gameOver && !victory) {
+        RGU_RestartWDT();
+        KeepBacklightOn();
+        
+        /* Update HUD */
+        char hudBuf[30];
+        sprintf(hudBuf, "HP:%d  GOLD:%d", health, score);
+        LCD_DrawString(5, 290, hudBuf, 0xFFFF, 0x0000);
+        
+        /* Input */
+        if (KP_IsKeyPressed()) {
+            TKEY key = KP_ReadKey();
+            if (key == KEY_BACK) return;
+            
+            int newX = playerX;
+            int newY = playerY;
+            
+            if (key == KEY_2 || key == KEY_UP) newY--;
+            if (key == KEY_8 || key == KEY_DOWN) newY++;
+            if (key == KEY_4 || key == KEY_LEFT) newX--;
+            if (key == KEY_6 || key == KEY_RIGHT) newX++;
+            
+            /* Check collision */
+            if (newX >= 0 && newX < MAP_W && newY >= 0 && newY < MAP_H) {
+                char target = map[newY][newX];
+                
+                if (target != '#') {
+                    /* Erase old player */
+                    LCD_DrawString(playerX * CHAR_W + 60, playerY * CHAR_H + 60, ".", 0x2104, 0x0000);
+                    
+                    /* Handle tile */
+                    if (target == '$') {
+                        score += 10;
+                        map[newY][newX] = '.';
+                        Beep();
+                    }
+                    else if (target == 'E') {
+                        health--;
+                        map[newY][newX] = '.';
+                        if (health <= 0) gameOver = true;
+                    }
+                    else if (target == 'X') {
+                        victory = true;
+                    }
+                    
+                    /* Move player */
+                    playerX = newX;
+                    playerY = newY;
+                    
+                    /* Draw new player */
+                    LCD_DrawString(playerX * CHAR_W + 60, playerY * CHAR_H + 60, "@", 0x07FF, 0x0000);
+                }
+            }
+            
+            USC_Pause_us(100000); // Debounce
+        }
+        
+        USC_Pause_us(50000);
+    }
+    
+    if (victory) {
+        LCD_DrawString(70, 150, "YOU ESCAPED!", 0x07E0, 0x0000);
+    } else {
+        LCD_DrawString(70, 150, "YOU DIED!", 0xF800, 0x0000);
+    }
+    
+    char finalBuf[20];
+    sprintf(finalBuf, "SCORE: %d", score);
+    LCD_DrawString(80, 170, finalBuf, 0xFFFF, 0x0000);
+    
+    USC_Pause_us(3000000);
+    Menu_InvalidateCache();
+}

@@ -1,0 +1,161 @@
+
+/* eBook Reader */
+static void Action_EBookReader(void)
+{
+    LCD_FillRect(0, 0, 240, 320, 0x0000);
+    LCD_DrawString(60, 40, "eBook Reader", 0xFFE0, 0x0000);
+    LCD_DrawString(20, 80, "Scanning SD Card...", 0xFFFF, 0x0000);
+    
+    /* Try to list .txt files */
+    TDIR dir;
+    TFINFO info;
+    int fileCount = 0;
+    int yPos = 100;
+    
+    if (FAT32_OpenDirectory(&dir, "/")) {
+        while (FAT32_ReadDirectory(&dir, &info) && fileCount < 10) {
+            if (!(info.Attributes & FA_DIRECTORY)) {
+                /* Check if .txt file */
+                int len = 0;
+                while(info.FileName[len]) len++;
+                if (len > 4 && info.FileName[len-4] == '.' && 
+                    (info.FileName[len-3] == 't' || info.FileName[len-3] == 'T') &&
+                    (info.FileName[len-2] == 'x' || info.FileName[len-2] == 'X') &&
+                    (info.FileName[len-1] == 't' || info.FileName[len-1] == 'T')) {
+                    LCD_DrawString(20, yPos, info.FileName, 0x07E0, 0x0000);
+                    yPos += 16;
+                    fileCount++;
+                }
+            }
+        }
+        FAT32_CloseDirectory(&dir);
+    }
+    
+    if (fileCount == 0) {
+        LCD_DrawString(20, 120, "No .txt files found", 0xF800, 0x0000);
+    }
+    
+    LCD_DrawString(20, 280, "Press BACK to exit", 0x7BEF, 0x0000);
+    
+    while(1) {
+        RGU_RestartWDT();
+        KeepBacklightOn();
+        if (KP_IsKeyPressed()) {
+            TKEY key = KP_ReadKey();
+            if (key == KEY_BACK) break;
+        }
+        USC_Pause_us(50000);
+    }
+    Menu_InvalidateCache();
+}
+
+/* Internet Browser (Placeholder) */
+static void Action_Browser(void)
+{
+    LCD_FillRect(0, 0, 240, 320, 0x0000);
+    LCD_DrawString(50, 100, "INTERNET BROWSER", 0xFFE0, 0x0000);
+    LCD_DrawString(40, 150, "NO NETWORK AVAILABLE", 0xF800, 0x0000);
+    LCD_DrawString(20, 180, "WiFi not supported", 0x7BEF, 0x0000);
+    LCD_DrawString(20, 200, "GPRS requires SIM", 0x7BEF, 0x0000);
+    LCD_DrawString(60, 280, "Press BACK", 0xFFFF, 0x0000);
+    
+    while(1) {
+        RGU_RestartWDT();
+        KeepBacklightOn();
+        if (KP_IsKeyPressed()) {
+            if (KP_ReadKey() == KEY_BACK) break;
+        }
+        USC_Pause_us(50000);
+    }
+    Menu_InvalidateCache();
+}
+
+/* Contacts (Rehber) */
+static void Action_Contacts(void)
+{
+    /* Simple in-memory contacts */
+    typedef struct {
+        char name[20];
+        char phone[15];
+        boolean used;
+    } Contact;
+    
+    static Contact contacts[10] = {
+        {"Ali", "555-1234", true},
+        {"Mehmet", "555-5678", true},
+        {"Ayse", "555-9012", true},
+        {"", "", false}
+    };
+    
+    int selected = 0;
+    int contactCount = 3;
+    boolean editing = false;
+    
+    while(1) {
+        RGU_RestartWDT();
+        KeepBacklightOn();
+        
+        LCD_FillRect(0, 0, 240, 320, 0x0000);
+        LCD_DrawString(80, 10, "CONTACTS", 0xFFE0, 0x0000);
+        
+        /* Draw contacts */
+        for(int i=0; i<10 && contacts[i].used; i++) {
+            uint16_t color = (i == selected) ? 0x07E0 : 0xFFFF;
+            uint16_t bg = (i == selected) ? 0x001F : 0x0000;
+            
+            char buf[40];
+            sprintf(buf, "%s: %s", contacts[i].name, contacts[i].phone);
+            LCD_DrawString(10, 40 + i*20, buf, color, bg);
+        }
+        
+        LCD_DrawString(10, 280, "UP/DOWN: Select", 0x7BEF, 0x0000);
+        LCD_DrawString(10, 295, "BACK: Exit", 0x7BEF, 0x0000);
+        
+        if (KP_IsKeyPressed()) {
+            TKEY key = KP_ReadKey();
+            if (key == KEY_BACK) break;
+            if (key == KEY_UP && selected > 0) selected--;
+            if (key == KEY_DOWN && selected < contactCount - 1) selected++;
+        }
+        
+        USC_Pause_us(100000);
+    }
+    Menu_InvalidateCache();
+}
+
+/* Call Log (Arama Kaydi) */
+static void Action_CallLog(void)
+{
+    /* Simulated call log */
+    const char* callLog[] = {
+        "-> Ali       10:30",
+        "<- Mehmet    09:15",
+        "X  Ayse      08:45",
+        "-> Fatma     Yesterday",
+        "<- Ahmet     Yesterday"
+    };
+    const char* types[] = {"Outgoing", "Incoming", "Missed", "Outgoing", "Incoming"};
+    uint16_t colors[] = {0x07E0, 0xFFFF, 0xF800, 0x07E0, 0xFFFF};
+    
+    LCD_FillRect(0, 0, 240, 320, 0x0000);
+    LCD_DrawString(70, 10, "CALL LOG", 0xFFE0, 0x0000);
+    
+    for(int i=0; i<5; i++) {
+        LCD_DrawString(10, 50 + i*30, callLog[i], colors[i], 0x0000);
+    }
+    
+    LCD_DrawString(10, 250, "->: Outgoing", 0x07E0, 0x0000);
+    LCD_DrawString(10, 265, "<-: Incoming", 0xFFFF, 0x0000);
+    LCD_DrawString(10, 280, "X:  Missed", 0xF800, 0x0000);
+    LCD_DrawString(130, 295, "BACK: Exit", 0x7BEF, 0x0000);
+    
+    while(1) {
+        RGU_RestartWDT();
+        KeepBacklightOn();
+        if (KP_IsKeyPressed()) {
+            if (KP_ReadKey() == KEY_BACK) break;
+        }
+        USC_Pause_us(50000);
+    }
+    Menu_InvalidateCache();
+}
