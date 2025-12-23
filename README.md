@@ -15,7 +15,7 @@
 - Backlight
 - Power Button
 - Keypad
-- 2 Oyun
+- 6 Oyun
 - Ses
 
 
@@ -33,3 +33,7 @@
 - Random reboot
 - bazen ekranın kararması ve kendi istediği zaman geri gelmesi
 - yer yer flickering
+
+# Ne Eklenecek
+- Gameboy emulator(localde ekledim bile)
+- DOOM (beklediğim gibi olmadı yine localde ekledim)
